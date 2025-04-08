@@ -19,6 +19,7 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 		redirectURI := r.URL.Query().Get("redirect_uri")
 		codeChallenge := r.URL.Query().Get("code_challenge")
 		codeMethod := r.URL.Query().Get("code_challenge_method")
+		scopes := r.URL.Query().Get("scope")
 		logo := "/logo.png"
 		loginTmpl.Execute(w, map[string]string{
 			"ClientID":            appName,
@@ -26,6 +27,7 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 			"CodeChallenge":       codeChallenge,
 			"CodeChallengeMethod": codeMethod,
 			"Logo":                logo,
+			"Scope":               scopes,
 		})
 		return
 	}
@@ -37,6 +39,7 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	clientID := r.FormValue("client_id")
 	codeChallenge := r.FormValue("code_challenge")
 	codeMethod := r.FormValue("code_challenge_method")
+	scope := r.FormValue("scope")
 
 	client, err := store.GetClientByID(clientID)
 	if err != nil {
@@ -64,6 +67,7 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 		CodeChallenge:       codeChallenge,
 		CodeChallengeMethod: codeMethod,
 		ExpiresAt:           time.Now().Add(10 * time.Minute),
+		Scope:               scope,
 	})
 	if err != nil {
 		http.Error(w, "Server error", http.StatusInternalServerError)

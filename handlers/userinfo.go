@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 	"zenauth/oauth"
@@ -22,9 +23,17 @@ func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || claims["scope"] == nil {
+		http.Error(w, "Scopes not available", http.StatusForbidden)
+		return
+	}
 
-	// Exemple simple de réponse
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"sub": "` + claims["sub"].(string) + `"}`))
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"sub":   claims["sub"],
+		"scope": claims["scope"],
+	})
+
 }

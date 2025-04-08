@@ -9,6 +9,8 @@
     <input type="hidden" name="redirect_uri" value="{{.RedirectURI}}">
     <input type="hidden" name="code_challenge" value="{{.CodeChallenge}}">
     <input type="hidden" name="code_challenge_method" value="{{.CodeChallengeMethod}}">
+    <input type="hidden" name="scope" value="{{.Scope}}">
+    <input type="hidden" name="state" value="{{.State}}">
     <label>Username:</label><input name="username"><br>
     <label>Password:</label><input name="password" type="password"><br>
     <button type="submit">Login</button>

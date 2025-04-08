@@ -11,7 +11,9 @@ CREATE TABLE auth_codes (
   user_id UUID NOT NULL REFERENCES users(id),
   code_challenge TEXT,
   code_challenge_method TEXT,
-  expires_at TIMESTAMP NOT NULL
+  expires_at TIMESTAMP NOT NULL,
+  scope TEXT NOT NULL
+
 );
 
 CREATE TABLE clients (
