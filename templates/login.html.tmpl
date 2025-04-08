@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head><title>Login</title></head>
+<body>
+  <h1>Welcome to {{.ClientID}}</h1>
+  <img src="{{.Logo}}" width="120" />
+  <form method="POST">
+    <input type="hidden" name="client_id" value="{{.ClientID}}">
+    <input type="hidden" name="redirect_uri" value="{{.RedirectURI}}">
+    <input type="hidden" name="code_challenge" value="{{.CodeChallenge}}">
+    <input type="hidden" name="code_challenge_method" value="{{.CodeChallengeMethod}}">
+    <label>Username:</label><input name="username"><br>
+    <label>Password:</label><input name="password" type="password"><br>
+    <button type="submit">Login</button>
+  </form>
+</body>
+</html>

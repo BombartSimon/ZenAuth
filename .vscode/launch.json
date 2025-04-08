@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "cwd": "${workspaceFolder}",
+            "mode": "auto",
+            "name": "Launch ZenAuth",
+            "program": "${workspaceFolder}/cmd/main.go",
+            "request": "launch",
+            "type": "go",
+        }
+    ]
+}
