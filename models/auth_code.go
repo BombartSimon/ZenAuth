@@ -10,4 +10,5 @@ type AuthCode struct {
 	CodeChallenge       string
 	CodeChallengeMethod string
 	ExpiresAt           time.Time
+	Scope               string
 }

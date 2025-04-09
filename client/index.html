@@ -17,7 +17,7 @@
         const clientId = "demo-client";
         const redirectUri = "http://localhost:3000";
         const authServer = "http://localhost:8080";
-        const scope = "default";
+        const scope = "read write";  // Ajout des scopes ici
 
         // Utilitaires PKCE
         async function generateCodeVerifier() {
@@ -46,12 +46,13 @@
             const codeChallenge = await generateCodeChallenge(codeVerifier);
             sessionStorage.setItem("code_verifier", codeVerifier);
 
-            const authUrl = `${authServer}/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
+            // Inclure les scopes dans l'URL d'autorisation
+            const authUrl = `${authServer}/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge=${codeChallenge}&code_challenge_method=S256&scope=${encodeURIComponent(scope)}`;
 
-            window.location.href = authUrl;
+            window.location.href = authUrl;  // Rediriger l'utilisateur
         }
 
-        // Si code dans l’URL → échange token
+        // Si code dans l'URL → échange token
         window.onload = async function () {
             const params = new URLSearchParams(window.location.search);
             const code = params.get("code");
@@ -64,6 +65,9 @@
                 form.append("redirect_uri", redirectUri);
                 form.append("code_verifier", codeVerifier);
 
+                // Inclure les scopes dans le corps de la requête de token
+                form.append("scope", scope);
+
                 const response = await fetch(`${authServer}/token`, {
                     method: "POST",
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -75,6 +79,7 @@
             }
         }
     </script>
+
 </body>
 
 </html>

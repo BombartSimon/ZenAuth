@@ -34,19 +34,19 @@ func VerifyPassword(hashed string, password string) bool {
 }
 
 func StoreAuthCode(code *models.AuthCode) error {
-	_, err := db.Exec(`INSERT INTO auth_codes (code, client_id, redirect_uri, user_id, code_challenge, code_challenge_method, expires_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+	_, err := db.Exec(`INSERT INTO auth_codes (code, client_id, redirect_uri, user_id, code_challenge, code_challenge_method, expires_at, scope)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
 		code.Code, code.ClientID, code.RedirectURI, code.UserID,
-		code.CodeChallenge, code.CodeChallengeMethod, code.ExpiresAt)
+		code.CodeChallenge, code.CodeChallengeMethod, code.ExpiresAt, code.Scope) // Ajouter code.Scope
 	return err
 }
 
 func GetAuthCode(code string) (*models.AuthCode, error) {
-	row := db.QueryRow(`SELECT code, client_id, redirect_uri, user_id, code_challenge, code_challenge_method, expires_at
+	row := db.QueryRow(`SELECT code, client_id, redirect_uri, user_id, code_challenge, code_challenge_method, expires_at, scope
 		FROM auth_codes WHERE code = $1`, code)
 
 	var ac models.AuthCode
-	err := row.Scan(&ac.Code, &ac.ClientID, &ac.RedirectURI, &ac.UserID, &ac.CodeChallenge, &ac.CodeChallengeMethod, &ac.ExpiresAt)
+	err := row.Scan(&ac.Code, &ac.ClientID, &ac.RedirectURI, &ac.UserID, &ac.CodeChallenge, &ac.CodeChallengeMethod, &ac.ExpiresAt, &ac.Scope) // Ajouter ac.Scope
 	if err != nil {
 		return nil, err
 	}

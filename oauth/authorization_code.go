@@ -67,7 +67,7 @@ func (f *AuthorizationCodeFlow) HandleTokenRequest(w http.ResponseWriter, r *htt
 	_ = store.DeleteAuthCode(code)
 
 	// Générer access_token
-	accessToken, err := GenerateAccessToken(authCode.UserID, "default")
+	accessToken, err := GenerateAccessToken(authCode.UserID, authCode.Scope)
 	if err != nil {
 		http.Error(w, "server_error", http.StatusInternalServerError)
 		return

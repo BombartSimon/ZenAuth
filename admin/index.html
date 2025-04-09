@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenAuth Admin</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <img src="/admin/assets/logo.png" alt="ZenAuth Logo">
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="#" class="menu-link active" data-section="users"><i class="fas fa-users"></i> Users</a>
+                </li>
+                <li><a href="#" class="menu-link" data-section="clients"><i class="fas fa-laptop"></i> Clients</a></li>
+            </ul>
+
+            <div class="theme-switch">
+                <label for="theme-toggle"><i class="fas fa-moon"></i></label>
+                <label class="switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider"></span>
+                </label>
+                <label for="theme-toggle"><i class="fas fa-sun"></i></label>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1>ZenAuth Admin Console</h1>
+            </header>
+
+            <!-- Users Section -->
+            <section id="users-section" class="section active">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>User Management</h2>
+                        <div>
+                            <span id="source-indicator" class="badge">Local ZenAuth</span>
+                            <button id="add-user-btn" class="btn primary">
+                                <i class="fas fa-plus"></i> Add User
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-list">
+                                <!-- User list will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Clients Section -->
+            <section id="clients-section" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>OAuth Clients</h2>
+                        <button id="add-client-btn" class="btn primary">
+                            <i class="fas fa-plus"></i> Add Client
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <table id="clients-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Redirect URIs</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clients-list">
+                                <!-- Client list will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- User Form Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title">Add User</h2>
+            <form id="user-form">
+                <input type="hidden" id="user-id">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                    <small id="password-hint">Leave empty to keep current password when editing</small>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn primary">Save</button>
+                    <button type="button" id="cancel-btn" class="btn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Client Form Modal -->
+    <div id="client-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="client-modal-title">Add Client</h2>
+            <form id="client-form">
+                <input type="hidden" id="client-id-input">
+                <div class="form-group">
+                    <label for="client-id">Client ID</label>
+                    <input type="text" id="client-id" name="client-id" required>
+                </div>
+                <div class="form-group">
+                    <label for="client-name">Name</label>
+                    <input type="text" id="client-name" name="client-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="client-secret">Secret</label>
+                    <input type="text" id="client-secret" name="client-secret" required>
+                    <small id="secret-hint">Leave empty to keep current secret when editing</small>
+                </div>
+                <div class="form-group">
+                    <label for="redirect-uris">Redirect URIs (one per line)</label>
+                    <textarea id="redirect-uris" name="redirect-uris" rows="3" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn primary">Save</button>
+                    <button type="button" id="cancel-client-btn" class="btn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <h2>Confirm Delete</h2>
+            <p id="delete-confirmation-message">Are you sure you want to delete this item?</p>
+            <div class="form-actions">
+                <button id="confirm-delete" class="btn danger">Delete</button>
+                <button id="cancel-delete" class="btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
