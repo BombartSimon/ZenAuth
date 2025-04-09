@@ -1,4 +1,4 @@
-package providers
+package adapters
 
 import (
 	"database/sql"
@@ -36,7 +36,7 @@ func initSQLUserProvider() error {
 		return err
 	}
 
-	CurrentUserProvider = NewSQLUserProvider(
+	CurrentUserProvider = NewSQLUser(
 		db,
 		config.App.UserProvider.SQLTable,
 		config.App.UserProvider.SQLIDField,

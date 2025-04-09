@@ -7,7 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"time"
-	"zenauth/oauth/store"
+	"zenauth/internal/repositories"
 
 	"github.com/google/uuid"
 )
@@ -34,13 +34,13 @@ func (f *AuthorizationCodeFlow) HandleTokenRequest(w http.ResponseWriter, r *htt
 	}
 
 	// Récupérer le code dans la base
-	authCode, err := store.GetAuthCode(code)
+	authCode, err := repositories.GetAuthCode(code)
 	if err != nil || time.Now().After(authCode.ExpiresAt) {
 		http.Error(w, "invalid_grant", http.StatusBadRequest)
 		return
 	}
 
-	client, err := store.GetClientByID(authCode.ClientID)
+	client, err := repositories.GetClientByID(authCode.ClientID)
 	if err != nil {
 		http.Error(w, "unauthorized_client", http.StatusBadRequest)
 		return
@@ -64,7 +64,7 @@ func (f *AuthorizationCodeFlow) HandleTokenRequest(w http.ResponseWriter, r *htt
 	}
 
 	// Supprimer le code après usage (sécurité)
-	_ = store.DeleteAuthCode(code)
+	_ = repositories.DeleteAuthCode(code)
 
 	// Générer access_token
 	accessToken, err := GenerateAccessToken(authCode.UserID, authCode.Scope)
@@ -75,7 +75,7 @@ func (f *AuthorizationCodeFlow) HandleTokenRequest(w http.ResponseWriter, r *htt
 
 	// Générer refresh_token
 	refreshToken := generateRandomToken()
-	_ = store.StoreRefreshToken(refreshToken, authCode.ClientID, &authCode.UserID)
+	_ = repositories.StoreRefreshToken(refreshToken, authCode.ClientID, &authCode.UserID)
 
 	// Réponse
 	token := map[string]interface{}{

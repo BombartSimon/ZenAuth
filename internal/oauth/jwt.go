@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 	"zenauth/config"
-	"zenauth/role"
+	rProviders "zenauth/internal/adapters/role"
 
 	"github.com/golang-jwt/jwt"
 )
@@ -20,11 +20,11 @@ func GenerateAccessToken(subject string, scope string) (string, error) {
 	}
 
 	// Inclure les rôles dans le JWT si configuré
-	if config.App.RoleManager.IncludeRolesInJWT && role.CurrentManager != nil {
+	if config.App.RoleManager.IncludeRolesInJWT && rProviders.CurrentManager != nil {
 		ctx := context.Background()
 
 		// Récupérer les rôles de l'utilisateur
-		roles, err := role.CurrentManager.GetUserRoles(ctx, subject)
+		roles, err := rProviders.CurrentManager.GetUserRoles(ctx, subject)
 		if err == nil && len(roles) > 0 {
 			// // Extraire uniquement les IDs des rôles pour le JWT
 			// roleIDs := make([]string, len(roles))

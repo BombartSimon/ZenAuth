@@ -3,7 +3,7 @@ package oauth
 import (
 	"encoding/json"
 	"net/http"
-	"zenauth/oauth/store"
+	"zenauth/internal/repositories"
 
 	"github.com/google/uuid"
 )
@@ -21,7 +21,7 @@ func (f *ClientCredentialsFlow) HandleTokenRequest(w http.ResponseWriter, r *htt
 		return
 	}
 
-	client, err := store.GetClientByID(clientID)
+	client, err := repositories.GetClientByID(clientID)
 	if err != nil || client.Secret != clientSecret {
 		http.Error(w, "invalid_client", http.StatusUnauthorized)
 		return
@@ -34,7 +34,7 @@ func (f *ClientCredentialsFlow) HandleTokenRequest(w http.ResponseWriter, r *htt
 	}
 
 	refreshToken := uuid.NewString()
-	_ = store.StoreRefreshToken(refreshToken, clientID, nil)
+	_ = repositories.StoreRefreshToken(refreshToken, clientID, nil)
 
 	token := map[string]interface{}{
 		"access_token":  accessToken,

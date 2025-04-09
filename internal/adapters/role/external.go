@@ -1,4 +1,4 @@
-package role
+package adapters
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"fmt"
 )
 
-// ExternalManagerConfig contient la configuration pour le manager externe
-type ExternalManagerConfig struct {
+// ExternalRoleConfig contient la configuration pour le manager externe
+type ExternalRoleConfig struct {
 	// Tables
 	RoleTable      string
 	GroupTable     string
@@ -37,11 +37,11 @@ type ExternalManagerConfig struct {
 // ExternalManager implémente Manager pour les providers SQL externes
 type ExternalManager struct {
 	db     *sql.DB
-	config ExternalManagerConfig
+	config ExternalRoleConfig
 }
 
 // NewExternalManager crée un nouveau gestionnaire externe de rôles
-func NewExternalManager(db *sql.DB, config ExternalManagerConfig) *ExternalManager {
+func NewExternalManager(db *sql.DB, config ExternalRoleConfig) *ExternalManager {
 	return &ExternalManager{
 		db:     db,
 		config: config,

@@ -1,4 +1,4 @@
-package role
+package adapters
 
 import (
 	"context"
@@ -19,8 +19,8 @@ type Group struct {
 	Roles       []Role `json:"roles"`
 }
 
-// Manager définit les opérations disponibles pour la gestion des rôles
-type Manager interface {
+// RoleSource définit les opérations disponibles pour la gestion des rôles
+type RoleSource interface {
 	// Récupérer tous les rôles disponibles
 	GetAllRoles(ctx context.Context) ([]Role, error)
 
@@ -55,7 +55,7 @@ type Manager interface {
 }
 
 // CurrentManager contient le gestionnaire de rôles actif
-var CurrentManager Manager
+var CurrentManager RoleSource
 
 // Type définit le type de gestionnaire de rôles (local ou externe)
 type Type string

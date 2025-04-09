@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-	"zenauth/oauth"
+	"zenauth/internal/oauth"
 
 	"github.com/golang-jwt/jwt"
 )

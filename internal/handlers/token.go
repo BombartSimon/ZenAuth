@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"zenauth/oauth"
+	"zenauth/internal/oauth"
 )
 
 var flows []oauth.OAuthFlow

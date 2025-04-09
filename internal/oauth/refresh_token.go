@@ -3,7 +3,7 @@ package oauth
 import (
 	"encoding/json"
 	"net/http"
-	"zenauth/oauth/store"
+	"zenauth/internal/repositories"
 )
 
 type RefreshTokenFlow struct{}
@@ -24,7 +24,7 @@ func (f *RefreshTokenFlow) HandleTokenRequest(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	clientID, userID, err := store.GetRefreshToken(refreshToken)
+	clientID, userID, err := repositories.GetRefreshToken(refreshToken)
 	if err != nil {
 		http.Error(w, "invalid_grant", http.StatusBadRequest)
 		return

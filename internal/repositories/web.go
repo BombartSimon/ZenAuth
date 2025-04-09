@@ -1,8 +1,8 @@
-package store
+package repositories
 
 import (
 	"errors"
-	"zenauth/models"
+	"zenauth/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
