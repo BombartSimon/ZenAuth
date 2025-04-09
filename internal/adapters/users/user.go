@@ -1,15 +1,15 @@
-package providers
+package adapters
 
 import (
 	"database/sql"
 	"fmt"
-	"zenauth/models"
+	"zenauth/internal/models"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-// SQLUserProvider implements UserProvider interface for SQL databases
-type SQLUserProvider struct {
+// SQLUser implements UserProvider interface for SQL databases
+type SQLUser struct {
 	db        *sql.DB
 	tableName string
 	// Field mappings
@@ -19,9 +19,9 @@ type SQLUserProvider struct {
 	emailField        string
 }
 
-// NewSQLUserProvider creates a new SQL user provider
-func NewSQLUserProvider(db *sql.DB, tableName, idField, usernameField, passwordHashField, emailField string) *SQLUserProvider {
-	return &SQLUserProvider{
+// NewSQLUser creates a new SQL user provider
+func NewSQLUser(db *sql.DB, tableName, idField, usernameField, passwordHashField, emailField string) *SQLUser {
+	return &SQLUser{
 		db:                db,
 		tableName:         tableName,
 		idField:           idField,
@@ -32,7 +32,7 @@ func NewSQLUserProvider(db *sql.DB, tableName, idField, usernameField, passwordH
 }
 
 // GetUserByUsername retrieves a user from the database by username
-func (p *SQLUserProvider) GetUserByUsername(username string) (*models.User, error) {
+func (p *SQLUser) GetUserByUsername(username string) (*models.User, error) {
 	// Construct query dynamically based on field mappings
 	query := fmt.Sprintf(
 		"SELECT %s, %s, %s, %s FROM %s WHERE %s = $1",
@@ -58,12 +58,12 @@ func (p *SQLUserProvider) GetUserByUsername(username string) (*models.User, erro
 }
 
 // VerifyPassword checks if the provided password matches the hashed password
-func (p *SQLUserProvider) VerifyPassword(hashedPassword, password string) bool {
+func (p *SQLUser) VerifyPassword(hashedPassword, password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) == nil
 }
 
 // GetAllUsers récupère tous les utilisateurs de la base de données externe
-func (p *SQLUserProvider) GetAllUsers() ([]models.User, error) {
+func (p *SQLUser) GetAllUsers() ([]models.User, error) {
 	query := fmt.Sprintf(
 		"SELECT %s, %s, %s, %s FROM %s",
 		p.idField, p.usernameField, p.passwordHashField, p.emailField,

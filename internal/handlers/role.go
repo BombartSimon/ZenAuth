@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"zenauth/role"
+	rProviders "zenauth/internal/adapters/role"
 )
 
 // AdminRolesHandler handles requests to the /admin/roles endpoint
@@ -96,13 +96,13 @@ func AdminUserGroupsHandler(w http.ResponseWriter, r *http.Request) {
 // Role Management Functions
 
 func listRoles(w http.ResponseWriter, r *http.Request) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
 
 	ctx := context.Background()
-	roles, err := role.CurrentManager.GetAllRoles(ctx)
+	roles, err := rProviders.CurrentManager.GetAllRoles(ctx)
 	if err != nil {
 		http.Error(w, "Failed to retrieve roles: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -113,7 +113,7 @@ func listRoles(w http.ResponseWriter, r *http.Request) {
 }
 
 func createRole(w http.ResponseWriter, r *http.Request) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
@@ -134,7 +134,7 @@ func createRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
-	newRole, err := role.CurrentManager.CreateRole(ctx, data.Name, data.Description)
+	newRole, err := rProviders.CurrentManager.CreateRole(ctx, data.Name, data.Description)
 	if err != nil {
 		http.Error(w, "Failed to create role: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -152,7 +152,7 @@ func getRole(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func updateRole(w http.ResponseWriter, r *http.Request, id string) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
@@ -173,7 +173,7 @@ func updateRole(w http.ResponseWriter, r *http.Request, id string) {
 	}
 
 	ctx := context.Background()
-	err := role.CurrentManager.UpdateRole(ctx, id, data.Name, data.Description)
+	err := rProviders.CurrentManager.UpdateRole(ctx, id, data.Name, data.Description)
 	if err != nil {
 		http.Error(w, "Failed to update role: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -187,13 +187,13 @@ func updateRole(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func deleteRole(w http.ResponseWriter, r *http.Request, id string) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
 
 	ctx := context.Background()
-	err := role.CurrentManager.DeleteRole(ctx, id)
+	err := rProviders.CurrentManager.DeleteRole(ctx, id)
 	if err != nil {
 		http.Error(w, "Failed to delete role: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -205,13 +205,13 @@ func deleteRole(w http.ResponseWriter, r *http.Request, id string) {
 // Group Management Functions
 
 func listGroups(w http.ResponseWriter, r *http.Request) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
 
 	ctx := context.Background()
-	groups, err := role.CurrentManager.GetAllGroups(ctx)
+	groups, err := rProviders.CurrentManager.GetAllGroups(ctx)
 	if err != nil {
 		http.Error(w, "Failed to retrieve groups: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -222,7 +222,7 @@ func listGroups(w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroup(w http.ResponseWriter, r *http.Request) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
@@ -243,7 +243,7 @@ func createGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
-	newGroup, err := role.CurrentManager.CreateGroup(ctx, data.Name, data.Description)
+	newGroup, err := rProviders.CurrentManager.CreateGroup(ctx, data.Name, data.Description)
 	if err != nil {
 		http.Error(w, "Failed to create group: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -260,7 +260,7 @@ func getGroup(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func updateGroup(w http.ResponseWriter, r *http.Request, id string) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
@@ -281,7 +281,7 @@ func updateGroup(w http.ResponseWriter, r *http.Request, id string) {
 	}
 
 	ctx := context.Background()
-	err := role.CurrentManager.UpdateGroup(ctx, id, data.Name, data.Description)
+	err := rProviders.CurrentManager.UpdateGroup(ctx, id, data.Name, data.Description)
 	if err != nil {
 		http.Error(w, "Failed to update group: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -295,13 +295,13 @@ func updateGroup(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func deleteGroup(w http.ResponseWriter, r *http.Request, id string) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
 
 	ctx := context.Background()
-	err := role.CurrentManager.DeleteGroup(ctx, id)
+	err := rProviders.CurrentManager.DeleteGroup(ctx, id)
 	if err != nil {
 		http.Error(w, "Failed to delete group: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -313,7 +313,7 @@ func deleteGroup(w http.ResponseWriter, r *http.Request, id string) {
 // User-Role Management Functions
 
 func getUserRoles(w http.ResponseWriter, r *http.Request) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
@@ -325,7 +325,7 @@ func getUserRoles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
-	roles, err := role.CurrentManager.GetUserRoles(ctx, userID)
+	roles, err := rProviders.CurrentManager.GetUserRoles(ctx, userID)
 	if err != nil {
 		http.Error(w, "Failed to get user roles: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -336,7 +336,7 @@ func getUserRoles(w http.ResponseWriter, r *http.Request) {
 }
 
 func assignRoleToUser(w http.ResponseWriter, r *http.Request) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
@@ -357,7 +357,7 @@ func assignRoleToUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
-	err := role.CurrentManager.AssignRoleToUser(ctx, data.UserID, data.RoleID)
+	err := rProviders.CurrentManager.AssignRoleToUser(ctx, data.UserID, data.RoleID)
 	if err != nil {
 		http.Error(w, "Failed to assign role to user: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -367,7 +367,7 @@ func assignRoleToUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func removeRoleFromUser(w http.ResponseWriter, r *http.Request) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
@@ -381,7 +381,7 @@ func removeRoleFromUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
-	err := role.CurrentManager.RemoveRoleFromUser(ctx, userID, roleID)
+	err := rProviders.CurrentManager.RemoveRoleFromUser(ctx, userID, roleID)
 	if err != nil {
 		http.Error(w, "Failed to remove role from user: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -393,7 +393,7 @@ func removeRoleFromUser(w http.ResponseWriter, r *http.Request) {
 // User-Group Management Functions
 
 func getUserGroups(w http.ResponseWriter, r *http.Request) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
@@ -405,7 +405,7 @@ func getUserGroups(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
-	groups, err := role.CurrentManager.GetUserGroups(ctx, userID)
+	groups, err := rProviders.CurrentManager.GetUserGroups(ctx, userID)
 	if err != nil {
 		http.Error(w, "Failed to get user groups: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -416,7 +416,7 @@ func getUserGroups(w http.ResponseWriter, r *http.Request) {
 }
 
 func assignUserToGroup(w http.ResponseWriter, r *http.Request) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
@@ -437,7 +437,7 @@ func assignUserToGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
-	err := role.CurrentManager.AssignUserToGroup(ctx, data.UserID, data.GroupID)
+	err := rProviders.CurrentManager.AssignUserToGroup(ctx, data.UserID, data.GroupID)
 	if err != nil {
 		http.Error(w, "Failed to assign user to group: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -447,7 +447,7 @@ func assignUserToGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 func removeUserFromGroup(w http.ResponseWriter, r *http.Request) {
-	if role.CurrentManager == nil {
+	if rProviders.CurrentManager == nil {
 		http.Error(w, "Role manager not initialized", http.StatusInternalServerError)
 		return
 	}
@@ -461,7 +461,7 @@ func removeUserFromGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
-	err := role.CurrentManager.RemoveUserFromGroup(ctx, userID, groupID)
+	err := rProviders.CurrentManager.RemoveUserFromGroup(ctx, userID, groupID)
 	if err != nil {
 		http.Error(w, "Failed to remove user from group: "+err.Error(), http.StatusInternalServerError)
 		return

@@ -3,9 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"zenauth/models"
-	"zenauth/oauth/store"
-	"zenauth/providers"
+	uProviders "zenauth/internal/adapters/users"
+	"zenauth/internal/models"
+	"zenauth/internal/repositories"
 )
 
 // AdminUsersHandler handles requests to the /admin/users endpoint
@@ -82,10 +82,10 @@ func listUsers(w http.ResponseWriter, r *http.Request) {
 
 	if useProvider {
 		// Utiliser le provider externe
-		users, err = providers.CurrentUserProvider.GetAllUsers()
+		users, err = uProviders.CurrentUserProvider.GetAllUsers()
 	} else {
 		// Utiliser la base de données locale par défaut
-		users, err = store.GetAllUsers()
+		users, err = repositories.GetAllUsers()
 	}
 
 	if err != nil {
@@ -135,7 +135,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := store.CreateUser(data.Username, data.Password)
+	user, err := repositories.CreateUser(data.Username, data.Password)
 	if err != nil {
 		http.Error(w, "Failed to create user", http.StatusInternalServerError)
 		return
@@ -150,7 +150,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUser(w http.ResponseWriter, r *http.Request, id string) {
-	user, err := store.GetUserByID(id)
+	user, err := repositories.GetUserByID(id)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -179,7 +179,7 @@ func updateUser(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	if err := store.UpdateUser(id, data.Username, data.Password); err != nil {
+	if err := repositories.UpdateUser(id, data.Username, data.Password); err != nil {
 		http.Error(w, "Failed to update user", http.StatusInternalServerError)
 		return
 	}
@@ -192,7 +192,7 @@ func updateUser(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func deleteUser(w http.ResponseWriter, r *http.Request, id string) {
-	if err := store.DeleteUser(id); err != nil {
+	if err := repositories.DeleteUser(id); err != nil {
 		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
 		return
 	}
@@ -202,7 +202,7 @@ func deleteUser(w http.ResponseWriter, r *http.Request, id string) {
 
 // Client Management
 func listClients(w http.ResponseWriter, r *http.Request) {
-	clients, err := store.GetAllClients()
+	clients, err := repositories.GetAllClients()
 	if err != nil {
 		http.Error(w, "Failed to retrieve clients", http.StatusInternalServerError)
 		return
@@ -230,7 +230,7 @@ func createClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client, err := store.CreateClient(data.ID, data.Secret, data.Name, data.RedirectURIs)
+	client, err := repositories.CreateClient(data.ID, data.Secret, data.Name, data.RedirectURIs)
 	if err != nil {
 		http.Error(w, "Failed to create client", http.StatusInternalServerError)
 		return
@@ -242,7 +242,7 @@ func createClient(w http.ResponseWriter, r *http.Request) {
 }
 
 func getClient(w http.ResponseWriter, r *http.Request, id string) {
-	client, err := store.GetClientByID(id)
+	client, err := repositories.GetClientByID(id)
 	if err != nil {
 		http.Error(w, "Client not found", http.StatusNotFound)
 		return
@@ -269,7 +269,7 @@ func updateClient(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	if err := store.UpdateClient(id, data.Name, data.Secret, data.RedirectURIs); err != nil {
+	if err := repositories.UpdateClient(id, data.Name, data.Secret, data.RedirectURIs); err != nil {
 		http.Error(w, "Failed to update client", http.StatusInternalServerError)
 		return
 	}
@@ -282,7 +282,7 @@ func updateClient(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func deleteClient(w http.ResponseWriter, r *http.Request, id string) {
-	if err := store.DeleteClient(id); err != nil {
+	if err := repositories.DeleteClient(id); err != nil {
 		http.Error(w, "Failed to delete client", http.StatusInternalServerError)
 		return
 	}

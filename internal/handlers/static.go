@@ -28,7 +28,7 @@ func StaticFileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Construct the full file path
-	filePath := filepath.Join("./admin", path)
+	filePath := filepath.Join("./web", path)
 	log.Printf("Looking for file: %s", filePath)
 
 	// Open the file

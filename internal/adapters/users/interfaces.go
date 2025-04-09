@@ -1,7 +1,7 @@
-package providers
+package adapters
 
 import (
-	"zenauth/models"
+	"zenauth/internal/models"
 )
 
 // UserProvider defines the interface for retrieving user information

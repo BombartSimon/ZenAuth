@@ -1,4 +1,4 @@
-package role
+package adapters
 
 import (
 	"database/sql"
@@ -57,7 +57,7 @@ func initExternalRoleManager() error {
 	}
 
 	// Configuration des tables et colonnes pour le manager externe
-	config := ExternalManagerConfig{
+	config := ExternalRoleConfig{
 		RoleTable:      config.App.RoleManager.RoleTable,
 		GroupTable:     config.App.RoleManager.GroupTable,
 		UserRoleTable:  config.App.RoleManager.UserRoleTable,

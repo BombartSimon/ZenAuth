@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"zenauth/models"
-	"zenauth/oauth/store"
-	"zenauth/providers"
+	uProviders "zenauth/internal/adapters/users"
+	"zenauth/internal/models"
+	"zenauth/internal/repositories"
 
 	"github.com/google/uuid"
 )
@@ -42,7 +42,7 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	codeMethod := r.FormValue("code_challenge_method")
 	scope := r.FormValue("scope")
 
-	client, err := store.GetClientByID(clientID)
+	client, err := repositories.GetClientByID(clientID)
 	if err != nil {
 		http.Error(w, "unauthorized_client", http.StatusBadRequest)
 		return
@@ -54,14 +54,14 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Use the configured user provider
-	user, err := providers.CurrentUserProvider.GetUserByUsername(username)
-	if err != nil || !providers.CurrentUserProvider.VerifyPassword(user.PasswordHash, password) {
+	user, err := uProviders.CurrentUserProvider.GetUserByUsername(username)
+	if err != nil || !uProviders.CurrentUserProvider.VerifyPassword(user.PasswordHash, password) {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
 
 	code := uuid.NewString()
-	err = store.StoreAuthCode(&models.AuthCode{
+	err = repositories.StoreAuthCode(&models.AuthCode{
 		Code:                code,
 		ClientID:            clientID,
 		RedirectURI:         redirectURI,

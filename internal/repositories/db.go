@@ -1,8 +1,8 @@
-package store
+package repositories
 
 import (
 	"database/sql"
-	"zenauth/models"
+	"zenauth/internal/models"
 
 	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"

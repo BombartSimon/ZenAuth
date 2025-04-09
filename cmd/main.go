@@ -4,12 +4,13 @@ import (
 	"log"
 	"net/http"
 	"zenauth/config"
-	"zenauth/handlers"
-	"zenauth/middlewares"
-	"zenauth/oauth"
-	"zenauth/oauth/store"
-	"zenauth/providers"
-	"zenauth/role"
+	"zenauth/internal/handlers"
+	"zenauth/internal/middlewares"
+	"zenauth/internal/oauth"
+	"zenauth/internal/repositories"
+
+	rProviders "zenauth/internal/adapters/role"
+	uProviders "zenauth/internal/adapters/users"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -20,20 +21,20 @@ func main() {
 
 	config.Load()
 
-	err := store.InitPostgres("postgres://oauth_user:oauth_pass@localhost:5432/oauth?sslmode=disable")
+	err := repositories.InitPostgres("postgres://oauth_user:oauth_pass@localhost:5432/oauth?sslmode=disable")
 	if err != nil {
 		log.Fatalf("❌ Failed to connect to PostgreSQL: %v", err)
 	}
 	log.Println("✅ Connected to PostgreSQL")
 
 	// Initialiser le provider d'utilisateurs
-	if err := providers.InitUserProvider(); err != nil {
+	if err := uProviders.InitUserProvider(); err != nil {
 		log.Fatalf("❌ Failed to initialize user provider: %v", err)
 	}
 	log.Println("✅ User provider initialized")
 
 	// Initialiser le gestionnaire de rôles
-	if err := role.InitRoleManager(); err != nil {
+	if err := rProviders.InitRoleManager(); err != nil {
 		log.Fatalf("❌ Failed to initialize role manager: %v", err)
 	}
 	log.Println("✅ Role manager initialized")
