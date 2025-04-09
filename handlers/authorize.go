@@ -7,6 +7,7 @@ import (
 	"time"
 	"zenauth/models"
 	"zenauth/oauth/store"
+	"zenauth/providers"
 
 	"github.com/google/uuid"
 )
@@ -52,8 +53,9 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := store.GetUserByUsername(username)
-	if err != nil || !store.VerifyPassword(user.PasswordHash, password) {
+	// Use the configured user provider
+	user, err := providers.CurrentUserProvider.GetUserByUsername(username)
+	if err != nil || !providers.CurrentUserProvider.VerifyPassword(user.PasswordHash, password) {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}

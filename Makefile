@@ -6,8 +6,9 @@ DB_PASSWORD=oauth_pass
 SEED_USER=demo
 SEED_PASS=demo123
 REDIRECT_PORT=3000
+ADMIN_PORT=3001
 
-.PHONY: all up init-db seed run server client logs down
+.PHONY: all up init-db seed run server client logs down admin
 
 # Lance tout
 all: up init-db seed run client
@@ -39,7 +40,13 @@ run:
 # Lance le client web (nécessite python3)
 client:
 	@echo "🌐 Starting OAuth client on http://localhost:$(REDIRECT_PORT)"
-	cd client-test && python3 -m http.server $(REDIRECT_PORT)
+	cd client && python3 -m http.server $(REDIRECT_PORT)
+
+# Lance l'interface admin
+admin:  
+	@echo "🔧 Starting Admin console on http://localhost:$(ADMIN_PORT)"
+	@echo "📌 Access the admin interface at http://localhost:8080/admin/"
+	cd admin && python3 -m http.server $(ADMIN_PORT)
 
 # Affiche les logs du container PostgreSQL
 logs:

@@ -8,7 +8,6 @@ ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server impl
 - [ZenAuth - OAuth 2.0 Authorization Server in Go](#zenauth---oauth-20-authorization-server-in-go)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
-  - [Project Structure](#project-structure)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Setup and Running](#setup-and-running)
@@ -22,6 +21,10 @@ ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server impl
     - [Client Credentials](#client-credentials)
     - [Authorization Code Flow (with PKCE plain)](#authorization-code-flow-with-pkce-plain)
     - [Refresh Token](#refresh-token)
+  - [Operation Modes](#operation-modes)
+    - [Standalone Mode](#standalone-mode)
+    - [Hybrid Mode](#hybrid-mode)
+    - [External Database Integration](#external-database-integration)
   - [Development Commands](#development-commands)
   - [License](#license)
   - [Contributing](#contributing)
@@ -45,25 +48,15 @@ ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server impl
 - **PostgreSQL Storage**:
   - Persistent storage for users, clients, authorization codes, and refresh tokens
 
----
-
-## Project Structure
-
-```
-ZenAuth/
-├── client/             # Test OAuth client application
-├── cmd/                     # Application entry points
-├── config/                  # Configuration handling
-├── handlers/                # HTTP request handlers
-├── middlewares/             # HTTP middleware functions
-├── models/                  # Data models
-├── oauth/                   # OAuth implementation
-│   └── store/               # Database interactions
-├── scripts/                 # Utility scripts
-└── templates/               # HTML templates
-```
+- **Integration Flexibility**:
+  - Standalone mode with internal database
+  - Hybrid mode with external user authentication and roles
+  - Support for custom database schemas
 
 ---
+
+
+
 
 ## Getting Started
 
@@ -113,10 +106,27 @@ ZenAuth/
 Create a `.env` file in the root directory with the following variables:
 
 ```
+# Base Configuration
 SERVER_PORT=8080
 DATABASE_URL=postgres://oauth_user:oauth_pass@localhost:5432/oauth?sslmode=disable
 JWT_SECRET=supersecretkey
 FRONTEND_ORIGIN=http://localhost:3000
+
+# User Provider Configuration
+USER_PROVIDER_TYPE=default  # options: default, sql
+USER_PROVIDER_SQL_CONN=postgres://user:pass@host:port/db?sslmode=disable
+USER_PROVIDER_SQL_TABLE=users
+USER_PROVIDER_SQL_ID_FIELD=id
+USER_PROVIDER_SQL_USER_FIELD=username
+USER_PROVIDER_SQL_PASS_FIELD=password_hash
+USER_PROVIDER_SQL_EMAIL_FIELD=email
+
+# Role Manager Configuration
+ROLE_MANAGER_TYPE=default  # options: default, external
+ROLE_MANAGER_INCLUDE_IN_JWT=true
+ROLE_MANAGER_EXTERNAL_CONN=postgres://user:pass@host:port/db?sslmode=disable
+ROLE_MANAGER_ROLE_TABLE=roles
+ROLE_MANAGER_GROUP_TABLE=groups
 ```
 
 ---
@@ -186,7 +196,56 @@ curl -X POST http://localhost:8080/token   -d "grant_type=authorization_code"   
 
 ### Refresh Token
 ```bash
-curl -X POST http://localhost:8080/token   -d "grant_type=refresh_token"   -d "refresh_token=xxx"
+curl -X POST http://localhost:8080/token   -d "grant_type=refresh_token"   -d "refresh_token=xxx"   -d "client_id=demo-client"   -d "client_secret=demo-secret"
+```
+
+---
+
+## Operation Modes
+
+ZenAuth can be used in different modes depending on your requirements.
+
+### Standalone Mode
+
+In this mode, ZenAuth manages both user authentication and OAuth data in its own PostgreSQL database.
+
+```
+USER_PROVIDER_TYPE=default
+ROLE_MANAGER_TYPE=default
+```
+
+### Hybrid Mode
+
+ZenAuth manages OAuth data (clients, authorization codes, tokens) in its own database, but uses an external database for user authentication and roles.
+
+```
+DATABASE_URL=postgres://oauth_user:oauth_pass@localhost:5432/oauth?sslmode=disable
+USER_PROVIDER_TYPE=sql
+USER_PROVIDER_SQL_CONN=postgres://user:pass@external-db:5432/app_db?sslmode=disable
+ROLE_MANAGER_TYPE=external
+ROLE_MANAGER_EXTERNAL_CONN=postgres://user:pass@external-db:5432/app_db?sslmode=disable
+```
+
+### External Database Integration
+
+Example configuration to use an existing database:
+
+```
+# Connection to external database for users
+USER_PROVIDER_TYPE=sql
+USER_PROVIDER_SQL_CONN=postgres://postgres:password@192.168.1.10:5432/app_db?sslmode=disable
+USER_PROVIDER_SQL_TABLE=users
+USER_PROVIDER_SQL_ID_FIELD=uuid
+USER_PROVIDER_SQL_USER_FIELD=username
+USER_PROVIDER_SQL_PASS_FIELD=password
+USER_PROVIDER_SQL_EMAIL_FIELD=email
+
+# Connection to external database for roles
+ROLE_MANAGER_TYPE=external
+ROLE_MANAGER_INCLUDE_IN_JWT=true
+ROLE_MANAGER_EXTERNAL_CONN=postgres://postgres:password@192.168.1.10:5432/app_db?sslmode=disable
+ROLE_MANAGER_ROLE_TABLE=roles
+ROLE_MANAGER_GROUP_TABLE=groups
 ```
 
 ---
@@ -198,7 +257,7 @@ curl -X POST http://localhost:8080/token   -d "grant_type=refresh_token"   -d "r
 - `make seed` - Create test user
 - `make run` - Start ZenAuth server
 - `make client` - Start test client
-- `make logs` - View PostgreSQL logs
+- `make logs` - Show PostgreSQL logs
 - `make down` - Stop all containers
 
 ---

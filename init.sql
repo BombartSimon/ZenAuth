@@ -1,20 +1,33 @@
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   username TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL
+  password_hash TEXT NOT NULL,
+  email TEXT,
+  is_external BOOLEAN DEFAULT false
 );
+
+-- Index pour recherche rapide d'utilisateurs par username
+CREATE INDEX idx_users_username ON users(username);
+-- Index pour recherche d'utilisateurs par email (si utilisé dans vos requêtes)
+CREATE INDEX idx_users_email ON users(email);
 
 CREATE TABLE auth_codes (
   code TEXT PRIMARY KEY,
   client_id TEXT NOT NULL,
   redirect_uri TEXT NOT NULL,
-  user_id UUID NOT NULL REFERENCES users(id),
+  user_id UUID NOT NULL,
   code_challenge TEXT,
   code_challenge_method TEXT,
   expires_at TIMESTAMP NOT NULL,
   scope TEXT NOT NULL
-
 );
+
+-- Index pour améliorer les performances des jointures user_id sans contrainte FK
+CREATE INDEX idx_auth_codes_user_id ON auth_codes(user_id);
+-- Index sur client_id pour accélération des requêtes filtrées par client
+CREATE INDEX idx_auth_codes_client_id ON auth_codes(client_id);
+-- Index pour le nettoyage des codes expirés
+CREATE INDEX idx_auth_codes_expires_at ON auth_codes(expires_at);
 
 CREATE TABLE clients (
   id TEXT PRIMARY KEY,
@@ -22,6 +35,9 @@ CREATE TABLE clients (
   name TEXT NOT NULL,
   redirect_uris TEXT[] DEFAULT '{}'
 );
+
+-- Index pour recherche de clients par nom (si utilisé)
+CREATE INDEX idx_clients_name ON clients(name);
 
 -- Exemple de client
 INSERT INTO clients (id, secret, name, redirect_uris)
@@ -34,7 +50,12 @@ CREATE TABLE refresh_tokens (
   issued_at TIMESTAMP NOT NULL DEFAULT now()
 );
 
-
+-- Index pour recherche par client_id
+CREATE INDEX idx_refresh_tokens_client_id ON refresh_tokens(client_id);
+-- Index pour recherche par user_id (sans FK)
+CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);
+-- Index pour expiration/nettoyage des tokens anciens
+CREATE INDEX idx_refresh_tokens_issued_at ON refresh_tokens(issued_at);
 
 -- Extensions utiles
 CREATE EXTENSION IF NOT EXISTS "pgcrypto"; -- pour gen_random_uuid()
