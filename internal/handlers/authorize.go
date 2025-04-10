@@ -4,8 +4,9 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
 	"time"
-	uProviders "zenauth/internal/adapters/users"
+	adapters "zenauth/internal/adapters/users"
 	"zenauth/internal/models"
 	"zenauth/internal/repositories"
 
@@ -34,7 +35,7 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// POST (login form)
-	username := r.FormValue("username")
+	identifier := r.FormValue("identifier")
 	password := r.FormValue("password")
 	redirectURI := r.FormValue("redirect_uri")
 	clientID := r.FormValue("client_id")
@@ -53,9 +54,32 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use the configured user provider
-	user, err := uProviders.CurrentUserProvider.GetUserByUsername(username)
-	if err != nil || !uProviders.CurrentUserProvider.VerifyPassword(user.PasswordHash, password) {
+	var user *models.User
+	var userErr error
+
+	// Get user from the user adapters
+	if strings.Contains(identifier, "@") {
+		// If username contains '@', we assume it's an email
+		user, userErr = adapters.CurrentUserProvider.GetUserByEmail(identifier)
+		if userErr != nil {
+			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+			return
+		}
+	} else {
+		// Otherwise, we assume it's a username
+		user, userErr = adapters.CurrentUserProvider.GetUserByUsername(identifier)
+		if userErr != nil {
+			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+			return
+		}
+	}
+
+	if user == nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	if !adapters.CurrentUserProvider.VerifyPassword(user.PasswordHash, password) {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
