@@ -71,8 +71,39 @@ func main() {
 	http.HandleFunc("/admin/users-roles", handlers.AdminUserRolesHandler)
 	http.HandleFunc("/admin/users-groups", handlers.AdminUserGroupsHandler)
 
+	// Static files handler for /static/ path
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	// Static files using custom handler
 	http.HandleFunc("/admin/", handlers.StaticFileHandler)
+
+	// Auth Provider Admin API
+	http.HandleFunc("/admin/auth-providers", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handlers.ListAuthProviders(w, r)
+		case http.MethodPost:
+			handlers.CreateAuthProvider(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	// Auth Provider Admin API - Individual provider operations
+	http.HandleFunc("/admin/auth-providers/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handlers.GetAuthProvider(w, r)
+		case http.MethodPut:
+			handlers.UpdateAuthProvider(w, r)
+		case http.MethodDelete:
+			handlers.DeleteAuthProvider(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/auth/external", handlers.StartExternalAuth)
+	http.HandleFunc("/auth/callback/", handlers.HandleExternalAuthCallback)
 
 	log.Println("🚀 OAuth server running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

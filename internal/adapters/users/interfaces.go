@@ -21,3 +21,11 @@ type UserProvider interface {
 	// GetAllUsers returns all users from the provider
 	GetAllUsers() ([]models.User, error)
 }
+
+type ExternalUserCreator interface {
+	// GetUserByExternalID récupère un utilisateur par son ID externe
+	GetUserByExternalID(externalID string) (*models.User, error)
+
+	// CreateExternalUser crée un nouvel utilisateur externe
+	CreateExternalUser(externalID string, username string, email string, provider string) (*models.User, error)
+}

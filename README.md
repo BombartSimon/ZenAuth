@@ -2,7 +2,7 @@
 
 ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server implemented in Go. It supports multiple OAuth 2.0 flows and provides a simple, secure way to handle authentication and authorization for your applications.
 
-![ZenAuth Logo](assets/logo.png)
+![ZenAuth Logo](static/login.png)
 
 ## Table of Contents
 - [ZenAuth - OAuth 2.0 Authorization Server in Go](#zenauth---oauth-20-authorization-server-in-go)
@@ -17,6 +17,7 @@ ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server impl
     - [Authorization Code Flow with PKCE](#authorization-code-flow-with-pkce)
     - [Client Credentials Flow](#client-credentials-flow)
     - [Refresh Token Flow](#refresh-token-flow)
+    - [External Authentication Flow](#external-authentication-flow)
   - [Testing the Flows (via curl)](#testing-the-flows-via-curl)
     - [Client Credentials](#client-credentials)
     - [Authorization Code Flow (with PKCE plain)](#authorization-code-flow-with-pkce-plain)
@@ -25,6 +26,8 @@ ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server impl
     - [Standalone Mode](#standalone-mode)
     - [Hybrid Mode](#hybrid-mode)
     - [External Database Integration](#external-database-integration)
+  - [External Authentication Providers](#external-authentication-providers)
+    - [Configuration](#configuration)
   - [Development Commands](#development-commands)
   - [License](#license)
   - [Contributing](#contributing)
@@ -38,6 +41,10 @@ ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server impl
   - Client Credentials flow
   - Refresh Token flow
 
+- **External Authentication**:
+  - Support for popular identity providers (Microsoft, Google, GitHub)
+  - Streamlined login experience with social sign-in buttons
+
 - **Security Features**:
   - PKCE (Proof Key for Code Exchange) support
   - JWT-based access tokens
@@ -48,15 +55,21 @@ ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server impl
 - **PostgreSQL Storage**:
   - Persistent storage for users, clients, authorization codes, and refresh tokens
 
+- **Role-Based Access Control**:
+  - User roles and groups management
+  - Role inclusion in JWT tokens
+
 - **Integration Flexibility**:
   - Standalone mode with internal database
   - Hybrid mode with external user authentication and roles
   - Support for custom database schemas
 
+- **Admin Console**:
+  - Web-based admin interface
+  - Manage users, clients, and auth providers
+  - Role and group assignment
+
 ---
-
-
-
 
 ## Getting Started
 
@@ -98,6 +111,13 @@ ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server impl
    - Use the test credentials:
      - Username: `demo`
      - Password: `demo123`
+   - Or use one of the configured external authentication providers
+      - Microsoft
+      - Google
+      - GitHub
+  
+7. Access the Admin Console at http://localhost:8080/admin/
+
 
 ---
 
@@ -133,11 +153,16 @@ ROLE_MANAGER_GROUP_TABLE=groups
 
 ## API Endpoints
 
-| Method | Path         | Description                          |
-| ------ | ------------ | ------------------------------------ |
-| GET    | `/authorize` | Starts the authorization code flow   |
-| POST   | `/token`     | Exchanges code or client credentials |
-| GET    | `/userinfo`  | Returns user info from access token  |
+| Method | Path              | Description                                                 |
+| ------ | ----------------- | ----------------------------------------------------------- |
+| GET    | `/authorize`      | Starts the authorization code flow                          |
+| POST   | `/token`          | Exchanges code or client credentials                        |
+| GET    | `/userinfo`       | Returns user info from access token                         |
+| GET    | `/admin/`         | Admin console for managing users, client and auth providers |
+| GET    | `/auth/external	` | Initiates external authentication flow                      |
+| GET    | `/auth/callback`  | Callback URL for external auth providers                    |
+
+                |
 
 ---
 
@@ -169,6 +194,19 @@ graph TD;
 graph TD;
   A[Client App] -->|POST /token with refresh_token| B[ZenAuth];
   B --> C[New Access Token];
+```
+
+### External Authentication Flow
+
+```mermaid
+graph TD;
+  A[Client App] -->|Redirect to| B[ZenAuth /authorize];
+  B --> C[Login Form with External Providers];
+  C -->|Select External Provider| D[/auth/external];
+  D -->|Redirect to Provider| E[Identity Provider];
+  E -->|Authentication| F[/auth/callback/];
+  F -->|Authorization Code| A;
+  A -->|POST /token| G[Access Token + Refresh Token];
 ```
 
 ---
@@ -247,6 +285,24 @@ ROLE_MANAGER_EXTERNAL_CONN=postgres://postgres:password@192.168.1.10:5432/app_db
 ROLE_MANAGER_ROLE_TABLE=roles
 ROLE_MANAGER_GROUP_TABLE=groups
 ```
+
+## External Authentication Providers
+ZenAuth supports integration with popular identity providers to enable social login and enterprise authentication.
+
+- **Microsoft**: Use Microsoft accounts for authentication.
+- **Google**: Authenticate users with their Google accounts.
+- **GitHub**: Allow users to log in using their GitHub accounts.
+
+### Configuration
+External authentication providers can be configured through the admin console at /admin/ under the "Auth Providers" section.
+
+For each provider, you'll need:
+
+- Provider name (display name)
+- Provider type (microsoft, google, github)
+- Client ID (from the provider's developer console)
+- Client Secret (from the provider's developer console)
+- Tenant ID (for Microsoft only, optional)
 
 ---
 

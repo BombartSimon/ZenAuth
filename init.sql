@@ -50,6 +50,23 @@ CREATE TABLE refresh_tokens (
   issued_at TIMESTAMP NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS auth_providers (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    client_id TEXT NOT NULL,
+    client_secret TEXT NOT NULL,
+    tenant_id TEXT,
+    enabled BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Run this SQL to add new columns to the users table
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS external_id TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider TEXT;
+CREATE INDEX IF NOT EXISTS idx_users_external_id ON users(external_id);
+
 -- Index pour recherche par client_id
 CREATE INDEX idx_refresh_tokens_client_id ON refresh_tokens(client_id);
 -- Index pour recherche par user_id (sans FK)

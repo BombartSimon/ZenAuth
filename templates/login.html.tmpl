@@ -1,180 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - {{.ClientID}}</title>
-    <style>
-        :root {
-            /* Light mode variables - matching your web console */
-            --primary: #4a86e8;
-            --primary-dark: #3a76d8;
-            --danger: #e84a4a;
-            --danger-dark: #d83a3a;
-            --text: #333;
-            --bg: #f9f9f9;
-            --card-bg: white;
-            --border: #e0e0e0;
-            --gray: #f5f5f5;
-            --gray-dark: #e0e0e0;
-            --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            line-height: 1.6;
-        }
-        
-        .login-container {
-            background-color: var(--card-bg);
-            box-shadow: var(--shadow);
-            border-radius: 8px;
-            padding: 2rem;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-        
-        .login-logo {
-            margin: 0 auto 1.5rem;
-            display: block;
-            max-width: 120px;
-            height: auto;
-        }
-        
-        .login-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        
-        input[type="text"],
-        input[type="password"],
-        input[type="email"] {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-size: 1rem;
-            background-color: var(--bg);
-            color: var(--text);
-            transition: border-color 0.2s;
-        }
-        
-        input[type="text"]:focus,
-        input[type="password"]:focus,
-        input[type="email"]:focus {
-            border-color: var(--primary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(74, 134, 232, 0.2);
-        }
-        
-        .btn {
-            display: inline-block;
-            background-color: var(--gray);
-            color: var(--text);
-            border: none;
-            border-radius: 4px;
-            padding: 8px 16px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In - {{.ClientID}}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --radius: 0.75rem;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --border: #e5e7eb;
+      --input-bg: #f9fafb;
+      --text: #111827;
+      --subtle-text: #6b7280;
+    }
 
-        .btn.primary {
-            background-color: var(--primary);
-            color: white;
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            margin-top: 1rem;
-        }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background-color: #f1f5f9;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+    }
 
-        .btn.primary:hover {
-            background-color: var(--primary-dark);
-        }
+    .card {
+      background-color: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+      padding: 2rem;
+      max-width: 400px;
+      width: 100%;
+    }
 
-        .input-hint {
-            color: #666;
-            font-size: 0.8rem;
-            margin-top: 4px;
-            display: block;
-        }
+    .card-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
 
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 1.5rem;
-                margin: 0 1rem;
-            }
-        }
+    .card-header img {
+      width: 280px;
+      height: 280px;
+      margin-bottom: 0.75rem;
+    }
 
-        /* Error message styling */
-        .error-message {
-            background-color: var(--danger);
-            color: white;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            text-align: left;
-        }
-    </style>
+    .card-header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.625rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background-color: var(--input-bg);
+      font-size: 1rem;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: var(--primary);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .divider {
+      text-align: center;
+      margin: 1.5rem 0;
+      color: var(--subtle-text);
+      font-size: 0.875rem;
+    }
+
+    .social-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background-color: #1f2937;
+      border-radius: var(--radius);
+      color: white;
+      font-size: 0.95rem;
+      text-decoration: none;
+      margin-bottom: 0.5rem;
+    }
+
+    .error-message {
+      background: #dc2626;
+      color: white;
+      padding: 0.75rem;
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
-    <div class="login-container">
-        <img src="{{.Logo}}" alt="{{.ClientID}} Logo" class="login-logo" />
-        <h1 class="login-title">Sign in to {{.ClientID}}</h1>
-        
-        {{if .Error}}
-        <div class="error-message">{{.Error}}</div>
-        {{end}}
-        
-        <form method="POST">
-            <input type="hidden" name="client_id" value="{{.ClientID}}">
-            <input type="hidden" name="redirect_uri" value="{{.RedirectURI}}">
-            <input type="hidden" name="code_challenge" value="{{.CodeChallenge}}">
-            <input type="hidden" name="code_challenge_method" value="{{.CodeChallengeMethod}}">
-            <input type="hidden" name="scope" value="{{.Scope}}">
-            <input type="hidden" name="state" value="{{.State}}">
-            
-            <div class="form-group">
-                <label for="identifier">Username or Email</label>
-                <input id="identifier" name="identifier" type="text" autocomplete="username email" required>
-                <span class="input-hint">Enter your username or email address</span>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input id="password" name="password" type="password" autocomplete="current-password" required>
-            </div>
-            
-            <button type="submit" class="btn primary">Sign In</button>
-        </form>
+  <div class="card">
+    <div class="card-header">
+      <img src="/static/logo.png" alt="ZenAuth Logo">
+      <h1>Sign in to {{.ClientID}}</h1>
     </div>
+
+    {{if .Error}}
+    <div class="error-message">{{.Error}}</div>
+    {{end}}
+
+    <form method="POST">
+      <input type="hidden" name="client_id" value="{{.ClientID}}">
+      <input type="hidden" name="redirect_uri" value="{{.RedirectURI}}">
+      <input type="hidden" name="code_challenge" value="{{.CodeChallenge}}">
+      <input type="hidden" name="code_challenge_method" value="{{.CodeChallengeMethod}}">
+      <input type="hidden" name="scope" value="{{.Scope}}">
+      <input type="hidden" name="state" value="{{.State}}">
+
+      <div class="form-group">
+        <label for="identifier">Username or Email</label>
+        <input id="identifier" name="identifier" type="text" required autocomplete="username email">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" required autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="btn">Sign In</button>
+    </form>
+
+    {{if .ExternalProviders}}
+    <div class="divider">or continue with</div>
+    {{range .ExternalProviders}}
+    <a href="/auth/external?provider={{.ID}}&client_id={{$.ClientID}}&redirect_uri={{$.RedirectURI}}" class="social-btn">
+      <i class="fab fa-{{.Type}}"></i> Continue with {{.Name}}
+    </a>
+    {{end}}
+    {{end}}
+  </div>
 </body>
 </html>

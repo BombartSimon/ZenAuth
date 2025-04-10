@@ -21,6 +21,8 @@
                 <li><a href="#" class="menu-link active" data-section="users"><i class="fas fa-users"></i> Users</a>
                 </li>
                 <li><a href="#" class="menu-link" data-section="clients"><i class="fas fa-laptop"></i> Clients</a></li>
+                <li><a href="#" class="menu-link" data-section="providers"><i class="fas fa-key"></i> Auth Providers</a>
+                </li>
             </ul>
 
             <div class="theme-switch">
@@ -94,8 +96,40 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Auth Providers Section -->
+            <section id="providers-section" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Authentication Providers</h2>
+                        <button id="add-provider-btn" class="btn primary">
+                            <i class="fas fa-plus"></i> Add Provider
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <table id="providers-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Client ID</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="providers-list">
+                                <!-- Provider list will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+
         </div>
     </div>
+
+
 
     <!-- User Form Modal -->
     <div id="user-modal" class="modal">
@@ -148,6 +182,51 @@
                 <div class="form-actions">
                     <button type="submit" class="btn primary">Save</button>
                     <button type="button" id="cancel-client-btn" class="btn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="provider-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="provider-modal-title">Add Authentication Provider</h2>
+            <form id="provider-form">
+                <input type="hidden" id="provider-id">
+                <div class="form-group">
+                    <label for="provider-name">Provider Name</label>
+                    <input type="text" id="provider-name" name="provider-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="provider-type">Provider Type</label>
+                    <select id="provider-type" name="provider-type" required>
+                        <option value="google">Google</option>
+                        <option value="microsoft">Microsoft</option>
+                        <option value="github">GitHub</option> <!-- Ajout du provider GitHub -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="provider-client-id">Client ID</label>
+                    <input type="text" id="provider-client-id" name="provider-client-id" required>
+                </div>
+                <div class="form-group tenant-id-group">
+                    <label for="provider-tenant-id">Tenant ID</label>
+                    <input type="text" id="provider-tenant-id" name="provider-tenant-id">
+                    <small>For Microsoft authentication. Leave empty for "organizations" (work/school accounts). Use
+                        "consumers" for personal accounts or your specific tenant ID.</small>
+                </div>
+                <div class="form-group">
+                    <label for="provider-client-secret">Client Secret</label>
+                    <input type="text" id="provider-client-secret" name="provider-client-secret" required>
+                    <small id="provider-secret-hint">Leave empty to keep current secret when editing</small>
+                </div>
+                <div class="form-group checkbox">
+                    <input type="checkbox" id="provider-enabled" name="provider-enabled">
+                    <label for="provider-enabled">Enable Provider</label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn primary">Save</button>
+                    <button type="button" id="cancel-provider-btn" class="btn">Cancel</button>
                 </div>
             </form>
         </div>

@@ -43,6 +43,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 loadUsers();
             } else if (targetSection === 'clients') {
                 loadClients();
+            } else if (targetSection === 'providers') {
+                loadProviders();
             }
         });
     });
@@ -75,6 +77,30 @@ document.addEventListener('DOMContentLoaded', function () {
     const cancelClientBtn = document.getElementById('cancel-client-btn');
     const closeClientBtn = clientModal.querySelector('.close');
 
+    // Provider Management Elements
+    const providersSection = document.getElementById('providers-section');
+    const providersList = document.getElementById('providers-list');
+    const addProviderBtn = document.getElementById('add-provider-btn');
+    const providerModal = document.getElementById('provider-modal');
+    const providerModalTitle = document.getElementById('provider-modal-title');
+    const providerForm = document.getElementById('provider-form');
+    const providerId = document.getElementById('provider-id');
+    const providerName = document.getElementById('provider-name');
+    const providerType = document.getElementById('provider-type');
+    const providerTenantId = document.getElementById('provider-tenant-id');
+    const tenantIdGroup = document.querySelector('.tenant-id-group');
+
+    const providerClientId = document.getElementById('provider-client-id');
+    const providerClientSecret = document.getElementById('provider-client-secret');
+    const providerEnabled = document.getElementById('provider-enabled');
+    const secretProviderHint = document.getElementById('provider-secret-hint');
+    const cancelProviderBtn = document.getElementById('cancel-provider-btn');
+    const closeProviderBtn = providerModal.querySelector('.close');
+
+
+
+
+
     // Delete Modal Elements
     const deleteModal = document.getElementById('delete-modal');
     const confirmDeleteBtn = document.getElementById('confirm-delete');
@@ -98,6 +124,12 @@ document.addEventListener('DOMContentLoaded', function () {
     clientForm.addEventListener('submit', handleClientFormSubmit);
     cancelClientBtn.addEventListener('click', closeClientModal);
     closeClientBtn.addEventListener('click', closeClientModal);
+
+    // Provider Event Listeners
+    addProviderBtn.addEventListener('click', showAddProviderModal);
+    providerForm.addEventListener('submit', handleProviderFormSubmit);
+    cancelProviderBtn.addEventListener('click', closeProviderModal);
+    closeProviderBtn.addEventListener('click', closeProviderModal);
 
     // Delete Event Listeners
     confirmDeleteBtn.addEventListener('click', confirmDelete);
@@ -257,6 +289,67 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Auth Provider Management Functions
+    async function loadProviders() {
+        try {
+            const response = await fetch('/admin/auth-providers');
+            if (!response.ok) throw new Error('Failed to load providers');
+            const providers = await response.json();
+
+            providersList.innerHTML = '';
+
+            providers.forEach(provider => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${provider.name}</td>
+                    <td><span class="badge provider-type ${provider.type}">${provider.type}</span></td>
+                    <td>${provider.client_id}</td>
+                    <td>
+                        <span class="status-indicator ${provider.enabled ? 'enabled' : 'disabled'}">
+                            ${provider.enabled ? 'Enabled' : 'Disabled'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="action-btn edit" data-id="${provider.id}" 
+                            data-name="${provider.name}" data-type="${provider.type}"
+                            data-client-id="${provider.client_id}" data-tenant-id="${provider.tenant_id || ''}"
+                            data-enabled="${provider.enabled}">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="action-btn delete" data-id="${provider.id}" data-type="provider" data-name="${provider.name}">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </td>
+                `;
+                providersList.appendChild(row);
+            });
+
+            // Attach the event handlers
+            document.querySelectorAll('#providers-list .action-btn.edit').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    showEditProviderModal(
+                        btn.dataset.id,
+                        btn.dataset.name,
+                        btn.dataset.type,
+                        btn.dataset.clientId,
+                        btn.dataset.tenantId,
+                        btn.dataset.enabled === 'true'
+                    );
+                });
+            });
+
+            document.querySelectorAll('#providers-list .action-btn.delete').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    showDeleteConfirmation(btn.dataset.id, 'provider', btn.dataset.name);
+                });
+            });
+        } catch (error) {
+            console.error('Error loading providers:', error);
+            alert('Failed to load authentication providers. Please refresh the page.');
+        }
+    }
+
+
     // User Modal Functions
     function showAddUserModal() {
         modalTitle.textContent = 'Add User';
@@ -311,6 +404,58 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function closeClientModal() {
         clientModal.style.display = 'none';
+    }
+
+    // Provider Modal Functions
+    // Update showAddProviderModal
+    function showAddProviderModal() {
+        providerModalTitle.textContent = 'Add Authentication Provider';
+        providerId.value = '';
+        providerName.value = '';
+        providerType.value = 'google';
+        providerClientId.value = '';
+        providerClientSecret.value = '';
+        providerClientSecret.required = true;
+        secretProviderHint.style.display = 'none';
+        providerTenantId.value = '';
+        providerEnabled.checked = false;
+
+        // Show/hide tenant ID field based on provider type
+        toggleTenantIdField(providerType.value);
+        providerModal.style.display = 'block';
+    }
+
+    function showEditProviderModal(id, name, type, clientId, tenantId, enabled) {
+        providerModalTitle.textContent = 'Edit Authentication Provider';
+        providerId.value = id;
+        providerName.value = name;
+        providerType.value = type;
+        providerClientId.value = clientId;
+        providerClientSecret.value = '';
+        providerClientSecret.required = false;
+        secretProviderHint.style.display = 'block';
+        providerTenantId.value = tenantId || '';
+        providerEnabled.checked = enabled;
+
+        // Show/hide tenant ID field based on provider type
+        toggleTenantIdField(providerType.value);
+        providerModal.style.display = 'block';
+    }
+    function closeProviderModal() {
+        providerModal.style.display = 'none';
+    }
+
+    providerType.addEventListener('change', function () {
+        toggleTenantIdField(this.value);
+    });
+
+    function toggleTenantIdField(providerType) {
+        if (providerType === 'microsoft') {
+            tenantIdGroup.style.display = 'block';
+        } else {
+            tenantIdGroup.style.display = 'none';
+            providerTenantId.value = '';
+        }
     }
 
     // Delete Modal Functions
@@ -431,6 +576,61 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Form Submit Handler for Providers
+    async function handleProviderFormSubmit(e) {
+        e.preventDefault();
+
+        const isEditing = providerId.value !== '';
+        const providerData = {
+            name: providerName.value,
+            type: providerType.value,
+            client_id: providerClientId.value,
+            enabled: providerEnabled.checked,
+            tenant_id: providerTenantId.value
+        };
+
+        // Only include secret if provided (for editing) or required (for adding)
+        if (providerClientSecret.value) {
+            providerData.client_secret = providerClientSecret.value;
+        }
+
+        try {
+            let response;
+
+            if (isEditing) {
+                // Update existing provider
+                response = await fetch(`/admin/auth-providers/${providerId.value}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(providerData)
+                });
+            } else {
+                // Create new provider
+                response = await fetch('/admin/auth-providers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(providerData)
+                });
+            }
+
+            if (response.ok) {
+                closeProviderModal();
+                loadProviders();
+            } else {
+                const error = await response.text();
+                throw new Error(error);
+            }
+        } catch (error) {
+            console.error('Error saving provider:', error);
+            alert(`Failed to save provider: ${error.message}`);
+        }
+    }
+
+
     async function confirmDelete() {
         try {
             let response;
@@ -461,4 +661,27 @@ document.addEventListener('DOMContentLoaded', function () {
             alert(`Failed to delete ${deleteItemType}: ${error.message}`);
         }
     }
+    const originalConfirmDelete = confirmDelete;
+    confirmDelete = async function () {
+        if (deleteItemType === 'provider') {
+            try {
+                const response = await fetch(`/admin/auth-providers/${deleteItemId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    closeDeleteModal();
+                    loadProviders();
+                } else {
+                    throw new Error('Failed to delete provider');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to delete provider');
+            }
+        } else {
+            // Call the original implementation for other item types
+            originalConfirmDelete();
+        }
+    };
 });

@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	uProviders "zenauth/internal/adapters/users"
 	"zenauth/internal/models"
 	"zenauth/internal/repositories"
@@ -284,6 +285,121 @@ func updateClient(w http.ResponseWriter, r *http.Request, id string) {
 func deleteClient(w http.ResponseWriter, r *http.Request, id string) {
 	if err := repositories.DeleteClient(id); err != nil {
 		http.Error(w, "Failed to delete client", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// ListAuthProviders returns all configured authentication providers
+func ListAuthProviders(w http.ResponseWriter, r *http.Request) {
+	providers, err := repositories.GetAllAuthProviders()
+	if err != nil {
+		http.Error(w, "Failed to retrieve authentication providers", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(providers)
+}
+
+func CreateAuthProvider(w http.ResponseWriter, r *http.Request) {
+	var data struct {
+		Name         string `json:"name"`
+		Type         string `json:"type"`
+		ClientID     string `json:"client_id"`
+		ClientSecret string `json:"client_secret"`
+		TenantID     string `json:"tenant_id"` // Added tenant_id
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if data.Name == "" || data.Type == "" || data.ClientID == "" || data.ClientSecret == "" {
+		http.Error(w, "All fields are required", http.StatusBadRequest)
+		return
+	}
+
+	// Validate provider type
+	providerType := models.AuthProviderType(data.Type)
+	if providerType != models.GoogleProvider &&
+		providerType != models.MicrosoftProvider &&
+		providerType != models.GitHubProvider {
+		http.Error(w, "Invalid provider type", http.StatusBadRequest)
+		return
+	}
+
+	provider, err := repositories.CreateAuthProvider(data.Name, providerType, data.ClientID, data.ClientSecret, data.TenantID)
+	if err != nil {
+		http.Error(w, "Failed to create authentication provider", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(provider)
+}
+
+// GetAuthProvider retrieves an authentication provider by ID
+func GetAuthProvider(w http.ResponseWriter, r *http.Request) {
+	// Extract ID from the path
+	path := strings.TrimPrefix(r.URL.Path, "/admin/auth-providers/")
+	id := strings.TrimSuffix(path, "/")
+
+	provider, err := repositories.GetAuthProviderByID(id)
+	if err != nil {
+		http.Error(w, "Authentication provider not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(provider)
+}
+
+// UpdateAuthProvider updates an existing authentication provider
+func UpdateAuthProvider(w http.ResponseWriter, r *http.Request) {
+	// Extract ID from the path
+	path := strings.TrimPrefix(r.URL.Path, "/admin/auth-providers/")
+	id := strings.TrimSuffix(path, "/")
+
+	var data struct {
+		Name         string `json:"name"`
+		ClientID     string `json:"client_id"`
+		ClientSecret string `json:"client_secret"` // Optional for updates
+		TenantID     string `json:"tenant_id"`     // Added tenant_id
+		Enabled      bool   `json:"enabled"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if data.Name == "" || data.ClientID == "" {
+		http.Error(w, "Name and client_id are required", http.StatusBadRequest)
+		return
+	}
+
+	err := repositories.UpdateAuthProvider(id, data.Name, data.ClientID, data.ClientSecret, data.TenantID, data.Enabled)
+	if err != nil {
+		http.Error(w, "Failed to update authentication provider", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// DeleteAuthProvider removes an authentication provider
+func DeleteAuthProvider(w http.ResponseWriter, r *http.Request) {
+	// Extract ID from the path
+	path := strings.TrimPrefix(r.URL.Path, "/admin/auth-providers/")
+	id := strings.TrimSuffix(path, "/")
+
+	err := repositories.DeleteAuthProvider(id)
+	if err != nil {
+		http.Error(w, "Failed to delete authentication provider", http.StatusInternalServerError)
 		return
 	}
 

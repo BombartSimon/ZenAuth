@@ -90,6 +90,10 @@ func (f *AuthorizationCodeFlow) HandleTokenRequest(w http.ResponseWriter, r *htt
 }
 
 func verifyPKCE(challenge, method, verifier string) error {
+	if challenge == "" || method == "" {
+		return nil
+	}
+
 	switch method {
 	case "S256":
 		h := sha256.Sum256([]byte(verifier))

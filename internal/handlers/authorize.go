@@ -23,13 +23,23 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 		codeMethod := r.URL.Query().Get("code_challenge_method")
 		scopes := r.URL.Query().Get("scope")
 		logo := "/logo.png"
-		loginTmpl.Execute(w, map[string]string{
+
+		// Get enabled external providers
+		externalProviders, err := repositories.GetEnabledAuthProviders()
+		if err != nil {
+			log.Printf("Failed to get external providers: %v", err)
+			// Continue without external providers
+			externalProviders = []models.AuthProvider{}
+		}
+
+		loginTmpl.Execute(w, map[string]interface{}{
 			"ClientID":            appName,
 			"RedirectURI":         redirectURI,
 			"CodeChallenge":       codeChallenge,
 			"CodeChallengeMethod": codeMethod,
 			"Logo":                logo,
 			"Scope":               scopes,
+			"ExternalProviders":   externalProviders,
 		})
 		return
 	}

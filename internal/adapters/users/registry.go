@@ -15,10 +15,12 @@ var (
 // InitUserProvider initializes the appropriate user provider based on configuration
 func InitUserProvider() error {
 	switch config.App.UserProvider.Type {
-	case "sql", "default":
+	case "external":
 		return initSQLUserProvider()
 	case "rest":
 		return initRESTUserProvider()
+	case "local":
+		fallthrough
 	default:
 		return errors.New("unsupported user provider type: " + config.App.UserProvider.Type)
 	}

@@ -360,3 +360,55 @@ input:checked+.slider:before {
     color: #fff;
     background-color: #6c757d;
 }
+
+.provider-type {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.provider-type.google {
+    background-color: #4285F4;
+    color: white;
+}
+
+.provider-type.microsoft {
+    background-color: #2F2F2F;
+    color: white;
+}
+
+.status-indicator {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.status-indicator.enabled {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.status-indicator.disabled {
+    background-color: #9E9E9E;
+    color: white;
+}
+
+.form-group.checkbox {
+    display: flex;
+    align-items: center;
+}
+
+.form-group.checkbox input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.provider-type.github {
+    background-color: #24292e;
+    color: white;
+}
+
+.social-btn.github {
+    background-color: #24292e;
+    color: white;
+}
