@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	sProviders "zenauth/internal/adapters/sessions"
 	uProviders "zenauth/internal/adapters/users"
 	"zenauth/internal/models"
 	"zenauth/internal/repositories"
@@ -36,6 +37,100 @@ func AdminUserHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
+}
+
+// AdminBlockedUsersHandler handles requests to the /admin/blocked-users endpoint
+func AdminBlockedUsersHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		listBlockedUsers(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+// listBlockedUsers returns all currently blocked users
+func listBlockedUsers(w http.ResponseWriter, r *http.Request) {
+	if !sProviders.IsLimiterEnabled() {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]interface{}{})
+		return
+	}
+
+	blockedUsers, err := sProviders.GetBlockedIdentifiers()
+	if err != nil {
+		http.Error(w, "Failed to retrieve blocked users", http.StatusInternalServerError)
+		return
+	}
+
+	type BlockedUser struct {
+		Identifier string `json:"identifier"`
+		Type       string `json:"type"`
+		BlockedFor string `json:"blocked_for"`
+	}
+
+	result := make([]BlockedUser, 0)
+
+	// Convertir les identifiants en objets structurés
+	for _, id := range blockedUsers {
+		var userType string
+		var identifier string
+
+		if strings.HasPrefix(id, "user:") {
+			userType = "user"
+			identifier = strings.TrimPrefix(id, "user:")
+		} else {
+			userType = "ip"
+			identifier = id
+		}
+
+		// Récupérer le temps restant de blocage
+		remaining, _ := sProviders.GetRemainingBlockTime(id)
+
+		result = append(result, BlockedUser{
+			Identifier: identifier,
+			Type:       userType,
+			BlockedFor: remaining,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+// AdminUnblockUserHandler handles requests to unblock a user or IP
+func AdminUnblockUserHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var data struct {
+		Identifier string `json:"identifier"`
+		Type       string `json:"type"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	var fullIdentifier string
+	if data.Type == "user" {
+		fullIdentifier = "user:" + data.Identifier
+	} else {
+		fullIdentifier = data.Identifier
+	}
+
+	if err := sProviders.ResetLoginAttempts(fullIdentifier); err != nil {
+		http.Error(w, "Failed to unblock user: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Successfully unblocked " + data.Type + " " + data.Identifier,
+	})
 }
 
 // AdminClientsHandler handles requests to the /admin/clients endpoint

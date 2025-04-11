@@ -412,3 +412,30 @@ input:checked+.slider:before {
     background-color: #24292e;
     color: white;
 }
+
+.associated-data {
+    font-size: 0.85em;
+    color: #777;
+    margin-top: 4px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.85em;
+}
+
+.badge.user {
+    background-color: #3498db;
+}
+
+.badge.ip {
+    background-color: #e74c3c;
+}
+
+#blocked-users-table td {
+    vertical-align: top;
+    padding: 10px;
+}

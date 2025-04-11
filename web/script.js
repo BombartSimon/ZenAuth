@@ -98,6 +98,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const closeProviderBtn = providerModal.querySelector('.close');
 
 
+    // Blocked Users Section
+    const blockedUsersSection = document.getElementById('blocked-users-section');
+    const blockedUsersList = document.getElementById('blocked-users-list');
+    const refreshBlockedBtn = document.getElementById('refresh-blocked-btn');
+
+    document.querySelector('.menu-link[data-section="blocked-users"]').addEventListener('click', () => {
+        loadBlockedUsers();
+    });
+
+    refreshBlockedBtn.addEventListener('click', loadBlockedUsers);
+
+
 
 
 
@@ -241,6 +253,147 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    async function loadBlockedUsers() {
+        try {
+            const response = await fetch('/admin/blocked-users');
+            if (!response.ok) throw new Error('Failed to load blocked users');
+            const blockedUsers = await response.json();
+
+            blockedUsersList.innerHTML = '';
+
+            if (blockedUsers.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="4" class="empty-state">
+                        No blocked users or IP addresses
+                    </td>
+                `;
+                blockedUsersList.appendChild(row);
+                return;
+            }
+
+            // Organiser les données pour regrouper les utilisateurs et leurs IPs
+            const groupedData = {};
+
+            blockedUsers.forEach(user => {
+                // Si c'est un utilisateur, on le traite séparément
+                if (user.type === "user") {
+                    const key = user.identifier;
+                    if (!groupedData[key]) {
+                        groupedData[key] = {
+                            identifier: user.identifier,
+                            type: "user",
+                            blockedFor: user.blocked_for,
+                            associatedIPs: []
+                        };
+                    }
+                }
+                // Si c'est une IP, on cherche si elle est associée à un utilisateur
+                else if (user.type === "ip") {
+                    let found = false;
+
+                    // Rechercher dans les associations existantes
+                    Object.values(groupedData).forEach(entry => {
+                        if (entry.associatedIPs && entry.associatedIPs.includes(user.identifier)) {
+                            found = true;
+                        }
+                    });
+
+                    // Si cette IP n'est pas déjà associée, créer une nouvelle entrée
+                    if (!found) {
+                        groupedData[`ip_${user.identifier}`] = {
+                            identifier: user.identifier,
+                            type: "ip",
+                            blockedFor: user.blocked_for,
+                            associatedUsers: []
+                        };
+                    }
+                }
+            });
+
+            // Afficher les données groupées
+            Object.values(groupedData).forEach(entry => {
+                const row = document.createElement('tr');
+
+                // Affichage différent selon le type
+                if (entry.type === "user") {
+                    row.innerHTML = `
+                        <td>
+                            <strong>${entry.identifier}</strong>
+                            ${entry.associatedIPs.length > 0 ?
+                            `<div class="associated-data">Associated IPs: ${entry.associatedIPs.join(", ")}</div>` :
+                            ''}
+                        </td>
+                        <td><span class="badge user">user</span></td>
+                        <td>${entry.blockedFor}</td>
+                        <td>
+                            <button class="action-btn unblock" 
+                                    data-identifier="${entry.identifier}" 
+                                    data-type="user">
+                                <i class="fas fa-unlock"></i> Unblock User & IPs
+                            </button>
+                        </td>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <td>
+                            <strong>${entry.identifier}</strong>
+                            ${entry.associatedUsers.length > 0 ?
+                            `<div class="associated-data">Associated users: ${entry.associatedUsers.join(", ")}</div>` :
+                            ''}
+                        </td>
+                        <td><span class="badge ip">ip</span></td>
+                        <td>${entry.blockedFor}</td>
+                        <td>
+                            <button class="action-btn unblock" 
+                                    data-identifier="${entry.identifier}" 
+                                    data-type="ip">
+                                <i class="fas fa-unlock"></i> Unblock IP & Users
+                            </button>
+                        </td>
+                    `;
+                }
+
+                blockedUsersList.appendChild(row);
+            });
+
+            // Ajouter les gestionnaires d'événements pour les boutons de déblocage
+            document.querySelectorAll('#blocked-users-list .action-btn.unblock').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    try {
+                        const response = await fetch('/admin/unblock-user', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                identifier: btn.dataset.identifier,
+                                type: btn.dataset.type
+                            })
+                        });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            // Afficher un message de confirmation
+                            alert(result.message);
+                            // Recharger la liste après le déblocage
+                            loadBlockedUsers();
+                        } else {
+                            const error = await response.text();
+                            throw new Error(error);
+                        }
+                    } catch (error) {
+                        console.error('Error unblocking:', error);
+                        alert(`Failed to unblock: ${error.message}`);
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('Error loading blocked users:', error);
+            alert('Failed to load blocked users. Please refresh the page.');
+        }
+    }
+
     async function loadClients() {
         try {
             const response = await fetch('/admin/clients');
@@ -301,6 +454,7 @@ document.addEventListener('DOMContentLoaded', function () {
             providers.forEach(provider => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
+                    <td>${provider.id}</td>
                     <td>${provider.name}</td>
                     <td><span class="badge provider-type ${provider.type}">${provider.type}</span></td>
                     <td>${provider.client_id}</td>

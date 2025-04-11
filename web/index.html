@@ -23,6 +23,8 @@
                 <li><a href="#" class="menu-link" data-section="clients"><i class="fas fa-laptop"></i> Clients</a></li>
                 <li><a href="#" class="menu-link" data-section="providers"><i class="fas fa-key"></i> Auth Providers</a>
                 </li>
+                <li><a href="#" class="menu-link" data-section="blocked-users"><i class="fas fa-ban"></i> Blocked
+                        Users</a></li>
             </ul>
 
             <div class="theme-switch">
@@ -110,6 +112,7 @@
                         <table id="providers-table">
                             <thead>
                                 <tr>
+                                    <th>ID</th>
                                     <th>Name</th>
                                     <th>Type</th>
                                     <th>Client ID</th>
@@ -119,6 +122,33 @@
                             </thead>
                             <tbody id="providers-list">
                                 <!-- Provider list will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Ajoutez cette section après la section des providers -->
+            <section id="blocked-users-section" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Rate Limit: Blocked Users</h2>
+                        <button id="refresh-blocked-btn" class="btn primary">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <table id="blocked-users-table">
+                            <thead>
+                                <tr>
+                                    <th>Identifier</th>
+                                    <th>Type</th>
+                                    <th>Blocked For</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blocked-users-list">
+                                <!-- Blocked users list will be populated here -->
                             </tbody>
                         </table>
                     </div>

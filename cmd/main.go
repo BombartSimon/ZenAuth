@@ -10,6 +10,7 @@ import (
 	"zenauth/internal/repositories"
 
 	rProviders "zenauth/internal/adapters/role"
+	sProviders "zenauth/internal/adapters/sessions"
 	uProviders "zenauth/internal/adapters/users"
 
 	"github.com/joho/godotenv"
@@ -39,6 +40,12 @@ func main() {
 	}
 	log.Println("✅ Role manager initialized")
 
+	// Initialiser le gestionnaire de sessions
+	if err := sProviders.InitSessions(); err != nil {
+		log.Fatalf("❌ Failed to initialize session manager: %v", err)
+	}
+	log.Println("✅ Session manager initialized")
+
 	flows := []oauth.OAuthFlow{
 		&oauth.ClientCredentialsFlow{},
 		&oauth.RefreshTokenFlow{},
@@ -55,6 +62,8 @@ func main() {
 	http.HandleFunc("/admin/users", handlers.AdminUsersHandler)
 	http.HandleFunc("/admin/users/", handlers.AdminUserHandler)
 
+	http.HandleFunc("/admin/blocked-users", handlers.AdminBlockedUsersHandler)
+	http.HandleFunc("/admin/unblock-user", handlers.AdminUnblockUserHandler)
 	// Admin endpoints - Clients
 	http.HandleFunc("/admin/clients", handlers.AdminClientsHandler)
 	http.HandleFunc("/admin/clients/", handlers.AdminClientHandler)

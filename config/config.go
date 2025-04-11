@@ -3,6 +3,8 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
+	"time"
 )
 
 type Config struct {
@@ -58,6 +60,16 @@ type Config struct {
 		// Inclure les rôles dans le JWT
 		IncludeRolesInJWT bool `json:"includeRolesInJWT,omitempty"`
 	}
+
+	// Configuration du rate limiting
+	RateLimit struct {
+		Enabled           bool
+		MaxAttempts       int
+		BlockDuration     time.Duration
+		CounterExpiration time.Duration
+		Provider          string // "memcached", "redis", etc.
+		ConnectionURL     string // "localhost:11211" pour Memcached, "redis://..." pour Redis
+	}
 }
 
 var App Config
@@ -108,6 +120,16 @@ func Load() {
 	App.RoleManager.UserGroupUserCol = getEnv("ROLE_MANAGER_USER_GROUP_USER_COL", "user_id")
 	App.RoleManager.UserGroupGroupCol = getEnv("ROLE_MANAGER_USER_GROUP_GROUP_COL", "group_id")
 
+	// Rate limiting configuration
+	App.RateLimit.Enabled = getEnvBool("RATE_LIMIT_ENABLED", true)
+	App.RateLimit.MaxAttempts = getEnvInt("RATE_LIMIT_MAX_ATTEMPTS", 5)
+	blockMinutes := getEnvInt("RATE_LIMIT_BLOCK_MINUTES", 30)
+	App.RateLimit.BlockDuration = time.Duration(blockMinutes) * time.Minute
+	counterHours := getEnvInt("RATE_LIMIT_COUNTER_HOURS", 24)
+	App.RateLimit.CounterExpiration = time.Duration(counterHours) * time.Hour
+	App.RateLimit.Provider = getEnv("RATE_LIMIT_PROVIDER", "memcached")
+	App.RateLimit.ConnectionURL = getEnv("RATE_LIMIT_CONNECTION_URL", "localhost:11211")
+
 	log.Println("✅ Configuration loaded")
 }
 
@@ -122,6 +144,16 @@ func getEnv(key, defaultVal string) string {
 func getEnvBool(key string, defaultVal bool) bool {
 	if val, exists := os.LookupEnv(key); exists {
 		return val == "true" || val == "1" || val == "yes"
+	}
+	return defaultVal
+}
+
+// Nouvelle fonction pour charger une variable d'env entière
+func getEnvInt(key string, defaultVal int) int {
+	if val, exists := os.LookupEnv(key); exists {
+		if intVal, err := strconv.Atoi(val); err == nil {
+			return intVal
+		}
 	}
 	return defaultVal
 }
