@@ -2,7 +2,7 @@
 
 ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server implemented in Go. It supports multiple OAuth 2.0 flows and provides a simple, secure way to handle authentication and authorization for your applications.
 
-![ZenAuth Logo](static/login.png)
+![ZenAuth Logo](assets/logo.png)
 
 ## Table of Contents
 - [ZenAuth - OAuth 2.0 Authorization Server in Go](#zenauth---oauth-20-authorization-server-in-go)
