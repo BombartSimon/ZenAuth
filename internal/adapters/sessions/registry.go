@@ -8,11 +8,9 @@ import (
 )
 
 var (
-	// CurrentLimiter contient l'instance active du rate limiter
 	CurrentLimiter Limiter
 )
 
-// InitSessions initialise le système de gestion des sessions selon la configuration
 func InitSessions() error {
 	if !config.App.RateLimit.Enabled {
 		log.Println("Rate limiting is disabled")
@@ -29,9 +27,6 @@ func InitSessions() error {
 	var err error
 
 	switch strings.ToLower(config.App.RateLimit.Provider) {
-	case "memcached":
-		servers := strings.Split(config.App.RateLimit.ConnectionURL, ",")
-		limiter, err = NewMemcachedLimiter(servers, limiterConfig)
 	case "redis":
 		limiter, err = NewRedisLimiter(config.App.RateLimit.ConnectionURL, limiterConfig)
 	default:

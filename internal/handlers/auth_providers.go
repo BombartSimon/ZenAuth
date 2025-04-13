@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -119,9 +118,6 @@ func StartExternalAuth(w http.ResponseWriter, r *http.Request) {
 		// For other providers, use the generic OAuth2 implementation
 		authURL = oauthProvider.GetAuthURL(state, fmt.Sprintf("http://%s/auth/callback/%s", r.Host, providerID))
 	}
-
-	log.Printf("Microsoft Auth URL: %s", authURL)
-	log.Printf("Provider details: Type=%s, TenantID=%s", provider.Type, provider.TenantID)
 
 	http.Redirect(w, r, authURL, http.StatusFound)
 }

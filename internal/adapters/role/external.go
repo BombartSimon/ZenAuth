@@ -6,7 +6,6 @@ import (
 	"fmt"
 )
 
-// ExternalRoleConfig contient la configuration pour le manager externe
 type ExternalRoleConfig struct {
 	// Tables
 	RoleTable      string
@@ -15,17 +14,14 @@ type ExternalRoleConfig struct {
 	GroupRoleTable string
 	UserGroupTable string
 
-	// Colonnes rôles
 	RoleIDCol   string
 	RoleNameCol string
 	RoleDescCol string
 
-	// Colonnes groupes
 	GroupIDCol   string
 	GroupNameCol string
 	GroupDescCol string
 
-	// Colonnes relations
 	UserRoleUserCol   string
 	UserRoleRoleCol   string
 	GroupRoleGroupCol string
@@ -34,13 +30,12 @@ type ExternalRoleConfig struct {
 	UserGroupGroupCol string
 }
 
-// ExternalManager implémente Manager pour les providers SQL externes
+// Implements the Manager interface
 type ExternalManager struct {
 	db     *sql.DB
 	config ExternalRoleConfig
 }
 
-// NewExternalManager crée un nouveau gestionnaire externe de rôles
 func NewExternalManager(db *sql.DB, config ExternalRoleConfig) *ExternalManager {
 	return &ExternalManager{
 		db:     db,
@@ -48,7 +43,6 @@ func NewExternalManager(db *sql.DB, config ExternalRoleConfig) *ExternalManager 
 	}
 }
 
-// GetAllRoles récupère tous les rôles disponibles
 func (m *ExternalManager) GetAllRoles(ctx context.Context) ([]Role, error) {
 	query := fmt.Sprintf(
 		"SELECT %s, %s, %s FROM %s",
@@ -67,7 +61,7 @@ func (m *ExternalManager) GetAllRoles(ctx context.Context) ([]Role, error) {
 	var roles []Role
 	for rows.Next() {
 		var role Role
-		var desc sql.NullString // Pour gérer les descriptions NULL
+		var desc sql.NullString
 
 		if err := rows.Scan(&role.ID, &role.Name, &desc); err != nil {
 			return nil, err
@@ -83,15 +77,13 @@ func (m *ExternalManager) GetAllRoles(ctx context.Context) ([]Role, error) {
 	return roles, nil
 }
 
-// GetUserRoles récupère tous les rôles d'un utilisateur
 func (m *ExternalManager) GetUserRoles(ctx context.Context, userID string) ([]Role, error) {
-	// Rôles directs
+
 	directRoles, err := m.GetUserDirectRoles(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Rôles via groupes
 	query := fmt.Sprintf(`
         SELECT DISTINCT r.%s, r.%s, r.%s
         FROM %s r
@@ -112,15 +104,12 @@ func (m *ExternalManager) GetUserRoles(ctx context.Context, userID string) ([]Ro
 	}
 	defer rows.Close()
 
-	// Map pour éliminer les doublons
 	roleMap := make(map[string]Role)
 
-	// Ajouter d'abord les rôles directs
 	for _, role := range directRoles {
 		roleMap[role.ID] = role
 	}
 
-	// Ajouter ensuite les rôles via groupes
 	for rows.Next() {
 		var role Role
 		var desc sql.NullString
@@ -136,7 +125,6 @@ func (m *ExternalManager) GetUserRoles(ctx context.Context, userID string) ([]Ro
 		roleMap[role.ID] = role
 	}
 
-	// Convertir la map en slice
 	result := make([]Role, 0, len(roleMap))
 	for _, role := range roleMap {
 		result = append(result, role)
@@ -144,10 +132,7 @@ func (m *ExternalManager) GetUserRoles(ctx context.Context, userID string) ([]Ro
 
 	return result, nil
 }
-
-// HasRole vérifie si un utilisateur a un rôle
 func (m *ExternalManager) HasRole(ctx context.Context, userID string, roleID string) (bool, error) {
-	// Vérifier rôle direct
 	query1 := fmt.Sprintf(
 		"SELECT 1 FROM %s WHERE %s = $1 AND %s = $2 LIMIT 1",
 		m.config.UserRoleTable,
@@ -165,7 +150,6 @@ func (m *ExternalManager) HasRole(ctx context.Context, userID string, roleID str
 		return true, nil
 	}
 
-	// Vérifier rôle via groupe
 	query2 := fmt.Sprintf(`
         SELECT 1 FROM %s gr
         JOIN %s ug ON gr.%s = ug.%s
@@ -186,11 +170,6 @@ func (m *ExternalManager) HasRole(ctx context.Context, userID string, roleID str
 	return err == nil, nil
 }
 
-// Implémentation des autres méthodes de l'interface Manager...
-// (Par souci de concision, je ne mets pas toutes les méthodes ici,
-// mais vous aurez besoin de les implémenter toutes pour satisfaire l'interface)
-
-// GetUserDirectRoles récupère les rôles directs d'un utilisateur
 func (m *ExternalManager) GetUserDirectRoles(ctx context.Context, userID string) ([]Role, error) {
 	query := fmt.Sprintf(`
         SELECT r.%s, r.%s, r.%s
@@ -229,7 +208,6 @@ func (m *ExternalManager) GetUserDirectRoles(ctx context.Context, userID string)
 	return roles, nil
 }
 
-// AssignRoleToUser assigne un rôle à un utilisateur
 func (m *ExternalManager) AssignRoleToUser(ctx context.Context, userID string, roleID string) error {
 	query := fmt.Sprintf(
 		"INSERT INTO %s (%s, %s) VALUES ($1, $2) ON CONFLICT DO NOTHING",
@@ -242,7 +220,6 @@ func (m *ExternalManager) AssignRoleToUser(ctx context.Context, userID string, r
 	return err
 }
 
-// RemoveRoleFromUser supprime un rôle d'un utilisateur
 func (m *ExternalManager) RemoveRoleFromUser(ctx context.Context, userID string, roleID string) error {
 	query := fmt.Sprintf(
 		"DELETE FROM %s WHERE %s = $1 AND %s = $2",
@@ -255,7 +232,6 @@ func (m *ExternalManager) RemoveRoleFromUser(ctx context.Context, userID string,
 	return err
 }
 
-// CreateRole crée un nouveau rôle
 func (m *ExternalManager) CreateRole(ctx context.Context, name string, description string) (*Role, error) {
 	query := fmt.Sprintf(
 		"INSERT INTO %s (%s, %s) VALUES ($1, $2) RETURNING %s",
@@ -278,7 +254,6 @@ func (m *ExternalManager) CreateRole(ctx context.Context, name string, descripti
 	}, nil
 }
 
-// GetRole récupère un rôle par son ID
 func (m *ExternalManager) GetRole(ctx context.Context, id string) (Role, error) {
 	query := fmt.Sprintf(
 		"SELECT %s, %s, %s FROM %s WHERE %s = $1",
@@ -303,7 +278,6 @@ func (m *ExternalManager) GetRole(ctx context.Context, id string) (Role, error) 
 	return role, nil
 }
 
-// UpdateRole met à jour un rôle existant
 func (m *ExternalManager) UpdateRole(ctx context.Context, id string, name string, description string) error {
 	query := fmt.Sprintf(
 		"UPDATE %s SET %s = $1, %s = $2 WHERE %s = $3",
@@ -317,16 +291,13 @@ func (m *ExternalManager) UpdateRole(ctx context.Context, id string, name string
 	return err
 }
 
-// DeleteRole supprime un rôle
 func (m *ExternalManager) DeleteRole(ctx context.Context, id string) error {
-	// Commencer une transaction pour s'assurer que toutes les suppressions sont atomiques
+
 	tx, err := m.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	// Nettoyer d'abord les relations
-	// Supprimer des user_role
 	query1 := fmt.Sprintf(
 		"DELETE FROM %s WHERE %s = $1",
 		m.config.UserRoleTable,
@@ -338,7 +309,6 @@ func (m *ExternalManager) DeleteRole(ctx context.Context, id string) error {
 		return err
 	}
 
-	// Supprimer des group_role
 	query2 := fmt.Sprintf(
 		"DELETE FROM %s WHERE %s = $1",
 		m.config.GroupRoleTable,
@@ -350,7 +320,6 @@ func (m *ExternalManager) DeleteRole(ctx context.Context, id string) error {
 		return err
 	}
 
-	// Enfin, supprimer le rôle lui-même
 	query3 := fmt.Sprintf(
 		"DELETE FROM %s WHERE %s = $1",
 		m.config.RoleTable,
@@ -365,7 +334,6 @@ func (m *ExternalManager) DeleteRole(ctx context.Context, id string) error {
 	return tx.Commit()
 }
 
-// GetAllGroups récupère tous les groupes
 func (m *ExternalManager) GetAllGroups(ctx context.Context) ([]Group, error) {
 	query := fmt.Sprintf(
 		"SELECT %s, %s, %s FROM %s",
@@ -400,7 +368,6 @@ func (m *ExternalManager) GetAllGroups(ctx context.Context) ([]Group, error) {
 	return groups, nil
 }
 
-// CreateGroup crée un nouveau groupe
 func (m *ExternalManager) CreateGroup(ctx context.Context, name string, description string) (*Group, error) {
 	query := fmt.Sprintf(
 		"INSERT INTO %s (%s, %s) VALUES ($1, $2) RETURNING %s",
@@ -420,11 +387,10 @@ func (m *ExternalManager) CreateGroup(ctx context.Context, name string, descript
 		ID:          id,
 		Name:        name,
 		Description: description,
-		Roles:       []Role{}, // Initialiser avec un slice vide
+		Roles:       []Role{},
 	}, nil
 }
 
-// GetGroup récupère un groupe par son ID
 func (m *ExternalManager) GetGroup(ctx context.Context, id string) (Group, error) {
 	query := fmt.Sprintf(
 		"SELECT %s, %s, %s FROM %s WHERE %s = $1",
@@ -449,7 +415,6 @@ func (m *ExternalManager) GetGroup(ctx context.Context, id string) (Group, error
 	return group, nil
 }
 
-// UpdateGroup met à jour un groupe existant
 func (m *ExternalManager) UpdateGroup(ctx context.Context, id string, name string, description string) error {
 	query := fmt.Sprintf(
 		"UPDATE %s SET %s = $1, %s = $2 WHERE %s = $3",
@@ -463,16 +428,12 @@ func (m *ExternalManager) UpdateGroup(ctx context.Context, id string, name strin
 	return err
 }
 
-// DeleteGroup supprime un groupe
 func (m *ExternalManager) DeleteGroup(ctx context.Context, id string) error {
-	// Commencer une transaction pour s'assurer que toutes les suppressions sont atomiques
 	tx, err := m.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	// Nettoyer d'abord les relations
-	// Supprimer des user_group
 	query1 := fmt.Sprintf(
 		"DELETE FROM %s WHERE %s = $1",
 		m.config.UserGroupTable,
@@ -484,7 +445,6 @@ func (m *ExternalManager) DeleteGroup(ctx context.Context, id string) error {
 		return err
 	}
 
-	// Supprimer des group_role
 	query2 := fmt.Sprintf(
 		"DELETE FROM %s WHERE %s = $1",
 		m.config.GroupRoleTable,
@@ -496,7 +456,6 @@ func (m *ExternalManager) DeleteGroup(ctx context.Context, id string) error {
 		return err
 	}
 
-	// Enfin, supprimer le groupe lui-même
 	query3 := fmt.Sprintf(
 		"DELETE FROM %s WHERE %s = $1",
 		m.config.GroupTable,
@@ -511,7 +470,6 @@ func (m *ExternalManager) DeleteGroup(ctx context.Context, id string) error {
 	return tx.Commit()
 }
 
-// GetUserGroups récupère tous les groupes d'un utilisateur
 func (m *ExternalManager) GetUserGroups(ctx context.Context, userID string) ([]Group, error) {
 	query := fmt.Sprintf(`
         SELECT g.%s, g.%s, g.%s
@@ -550,7 +508,6 @@ func (m *ExternalManager) GetUserGroups(ctx context.Context, userID string) ([]G
 	return groups, nil
 }
 
-// AssignUserToGroup ajoute un utilisateur à un groupe
 func (m *ExternalManager) AssignUserToGroup(ctx context.Context, userID string, groupID string) error {
 	query := fmt.Sprintf(
 		"INSERT INTO %s (%s, %s) VALUES ($1, $2) ON CONFLICT DO NOTHING",
@@ -563,7 +520,6 @@ func (m *ExternalManager) AssignUserToGroup(ctx context.Context, userID string, 
 	return err
 }
 
-// RemoveUserFromGroup retire un utilisateur d'un groupe
 func (m *ExternalManager) RemoveUserFromGroup(ctx context.Context, userID string, groupID string) error {
 	query := fmt.Sprintf(
 		"DELETE FROM %s WHERE %s = $1 AND %s = $2",
@@ -576,7 +532,6 @@ func (m *ExternalManager) RemoveUserFromGroup(ctx context.Context, userID string
 	return err
 }
 
-// GetGroupRoles récupère tous les rôles d'un groupe
 func (m *ExternalManager) GetGroupRoles(ctx context.Context, groupID string) ([]Role, error) {
 	query := fmt.Sprintf(`
         SELECT r.%s, r.%s, r.%s
@@ -615,7 +570,6 @@ func (m *ExternalManager) GetGroupRoles(ctx context.Context, groupID string) ([]
 	return roles, nil
 }
 
-// AssignRoleToGroup ajoute un rôle à un groupe
 func (m *ExternalManager) AssignRoleToGroup(ctx context.Context, groupID string, roleID string) error {
 	query := fmt.Sprintf(
 		"INSERT INTO %s (%s, %s) VALUES ($1, $2) ON CONFLICT DO NOTHING",
@@ -628,7 +582,6 @@ func (m *ExternalManager) AssignRoleToGroup(ctx context.Context, groupID string,
 	return err
 }
 
-// RemoveRoleFromGroup retire un rôle d'un groupe
 func (m *ExternalManager) RemoveRoleFromGroup(ctx context.Context, groupID string, roleID string) error {
 	query := fmt.Sprintf(
 		"DELETE FROM %s WHERE %s = $1 AND %s = $2",
@@ -641,7 +594,6 @@ func (m *ExternalManager) RemoveRoleFromGroup(ctx context.Context, groupID strin
 	return err
 }
 
-// GetRoleGroups récupère tous les groupes ayant un rôle spécifique
 func (m *ExternalManager) GetRoleGroups(ctx context.Context, roleID string) ([]Group, error) {
 	query := fmt.Sprintf(`
         SELECT g.%s, g.%s, g.%s
@@ -680,7 +632,6 @@ func (m *ExternalManager) GetRoleGroups(ctx context.Context, roleID string) ([]G
 	return groups, nil
 }
 
-// GetRoleUsers récupère tous les utilisateurs ayant un rôle spécifique (directement)
 func (m *ExternalManager) GetRoleUsers(ctx context.Context, roleID string) ([]string, error) {
 	query := fmt.Sprintf(`
         SELECT %s
@@ -710,7 +661,6 @@ func (m *ExternalManager) GetRoleUsers(ctx context.Context, roleID string) ([]st
 	return userIDs, nil
 }
 
-// GetGroupUsers récupère tous les utilisateurs appartenant à un groupe
 func (m *ExternalManager) GetGroupUsers(ctx context.Context, groupID string) ([]string, error) {
 	query := fmt.Sprintf(`
         SELECT %s
@@ -740,7 +690,6 @@ func (m *ExternalManager) GetGroupUsers(ctx context.Context, groupID string) ([]
 	return userIDs, nil
 }
 
-// AddRoleToGroup ajoute un rôle à un groupe (alias pour AssignRoleToGroup)
 func (m *ExternalManager) AddRoleToGroup(ctx context.Context, groupID string, roleID string) error {
 	return m.AssignRoleToGroup(ctx, groupID, roleID)
 }

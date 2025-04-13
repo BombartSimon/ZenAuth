@@ -181,6 +181,7 @@ func listUsers(w http.ResponseWriter, r *http.Request) {
 		users, err = uProviders.CurrentUserProvider.GetAllUsers()
 	} else {
 		// Utiliser la base de données locale par défaut
+
 		users, err = repositories.GetAllUsers()
 	}
 

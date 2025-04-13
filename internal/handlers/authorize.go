@@ -55,7 +55,6 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 		scope := r.FormValue("scope")
 		state := r.FormValue("state")
 
-		// Vérifier le rate limiting basé sur l'IP
 		ipAddress := getClientIP(r)
 		blocked, message, err := sessionsAdapters.CheckRateLimit(ipAddress)
 		if err != nil {
@@ -67,7 +66,6 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Vérifier le rate limiting basé sur l'identifiant utilisateur
 		if identifier != "" {
 			userKey := "user:" + identifier
 			blocked, message, err := sessionsAdapters.CheckRateLimit(userKey)
@@ -106,7 +104,6 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Gestion des échecs d'authentification avec rate limiting
 		if userErr != nil || user == nil || !adapters.CurrentUserProvider.VerifyPassword(user.PasswordHash, password) {
-			// Enregistrer la tentative échouée pour l'IP
 			attempts, err := sessionsAdapters.RecordFailedLoginAttempt(ipAddress)
 			if err != nil {
 				log.Printf("Error recording failed attempt for IP %s: %v", ipAddress, err)
@@ -114,7 +111,6 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 				log.Printf("Failed login attempt from IP %s: %d attempts", ipAddress, attempts)
 			}
 
-			// Enregistrer aussi pour l'identifiant spécifique
 			if identifier != "" {
 				userKey := "user:" + identifier
 				userAttempts, err := sessionsAdapters.RecordFailedLoginAttempt(userKey)
@@ -183,7 +179,6 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Helper function pour construire les données du template de connexion
 func loginData(clientID, redirectURI, codeChallenge, codeMethod, scope, state string) map[string]interface{} {
 	logo := "/logo.png"
 	externalProviders, err := repositories.GetEnabledAuthProviders()
@@ -204,19 +199,14 @@ func loginData(clientID, redirectURI, codeChallenge, codeMethod, scope, state st
 	}
 }
 
-// Helper function pour obtenir l'adresse IP du client
 func getClientIP(r *http.Request) string {
-	// Vérifier d'abord l'en-tête X-Forwarded-For
 	forwardedFor := r.Header.Get("X-Forwarded-For")
 	if forwardedFor != "" {
-		// Prendre la première IP si plusieurs sont fournies
 		ips := strings.Split(forwardedFor, ",")
 		return strings.TrimSpace(ips[0])
 	}
 
-	// Fallback sur RemoteAddr
 	ip := r.RemoteAddr
-	// Supprimer le port s'il est présent
 	if i := strings.LastIndex(ip, ":"); i != -1 {
 		ip = ip[:i]
 	}

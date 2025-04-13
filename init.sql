@@ -43,6 +43,11 @@ CREATE INDEX idx_clients_name ON clients(name);
 INSERT INTO clients (id, secret, name, redirect_uris)
 VALUES ('demo-client', 'demo-secret', 'Demo App', ARRAY['http://localhost:3000']);
 
+
+
+-- Admin user 
+INSERT INTO users (username, password_hash, email, is_external)
+value 
 CREATE TABLE refresh_tokens (
   token TEXT PRIMARY KEY,
   client_id TEXT NOT NULL,

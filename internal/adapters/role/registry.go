@@ -6,9 +6,7 @@ import (
 	"zenauth/config"
 )
 
-// InitRoleManager initialise le gestionnaire de rôles approprié
 func InitRoleManager() error {
-	// Déterminer quel type de gestionnaire utiliser
 	roleManagerType := config.App.RoleManager.Type
 
 	switch roleManagerType {
@@ -21,15 +19,12 @@ func InitRoleManager() error {
 	}
 }
 
-// initLocalRoleManager initialise un gestionnaire local de rôles
 func initLocalRoleManager() error {
-	// Utiliser la même base de données que ZenAuth
 	db, err := sql.Open("postgres", config.App.DatabaseURL)
 	if err != nil {
 		return err
 	}
 
-	// Vérifier la connexion
 	if err := db.Ping(); err != nil {
 		return err
 	}
@@ -43,20 +38,16 @@ func initLocalRoleManager() error {
 	return nil
 }
 
-// initExternalRoleManager initialise un gestionnaire externe de rôles
 func initExternalRoleManager() error {
-	// Se connecter à la base de données externe
 	db, err := sql.Open("postgres", config.App.RoleManager.ExternalConn)
 	if err != nil {
 		return err
 	}
 
-	// Vérifier la connexion
 	if err := db.Ping(); err != nil {
 		return err
 	}
 
-	// Configuration des tables et colonnes pour le manager externe
 	config := ExternalRoleConfig{
 		RoleTable:      config.App.RoleManager.RoleTable,
 		GroupTable:     config.App.RoleManager.GroupTable,

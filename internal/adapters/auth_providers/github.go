@@ -48,14 +48,14 @@ func GetUserEmailFromGitHub(token string) (string, error) {
 		return "", err
 	}
 
-	// Recherche de l'email principal et vérifié
+	// Search for the primary verified email
 	for _, email := range emails {
 		if email.Primary && email.Verified {
 			return email.Email, nil
 		}
 	}
 
-	// Si pas d'email principal vérifié, prendre le premier vérifié
+	// If no primary email is found, return the first verified email
 	for _, email := range emails {
 		if email.Verified {
 			return email.Email, nil
