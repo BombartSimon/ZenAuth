@@ -8,23 +8,22 @@ import (
 )
 
 var (
-	// CurrentUserProvider holds the active user provider
 	CurrentUserProvider UserProvider
 )
 
-// InitUserProvider initializes the appropriate user provider based on configuration
 func InitUserProvider() error {
 	switch config.App.UserProvider.Type {
-	case "sql", "default":
+	case "external":
 		return initSQLUserProvider()
 	case "rest":
 		return initRESTUserProvider()
+	case "local":
+		fallthrough
 	default:
 		return errors.New("unsupported user provider type: " + config.App.UserProvider.Type)
 	}
 }
 
-// Initialize SQL User Provider
 func initSQLUserProvider() error {
 	db, err := sql.Open("postgres", config.App.UserProvider.SQLConn)
 	if err != nil {
@@ -49,8 +48,6 @@ func initSQLUserProvider() error {
 	return nil
 }
 
-// Initialize REST User Provider
 func initRESTUserProvider() error {
-	// This would be implemented in the future if needed
 	return errors.New("REST User Provider not implemented yet")
 }

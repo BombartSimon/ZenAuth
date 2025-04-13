@@ -3,6 +3,8 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
+	"time"
 )
 
 type Config struct {
@@ -10,9 +12,14 @@ type Config struct {
 	DatabaseURL    string
 	JWTSecret      string
 	FrontendOrigin string
-	UserProvider   struct {
+
+	Admin struct {
+		JWTSecret string
+	}
+
+	UserProvider struct {
 		Type string `json:"type"` // "sql", "rest"
-		// Options SQL
+		// SQL Options
 		SQLConn       string `json:"sqlConn,omitempty"`
 		SQLTable      string `json:"sqlTable,omitempty"`
 		SQLIDField    string `json:"sqlIdField,omitempty"`
@@ -20,20 +27,18 @@ type Config struct {
 		SQLPassField  string `json:"sqlPassField,omitempty"`
 		SQLEmailField string `json:"sqlEmailField,omitempty"`
 
-		// Options REST
+		// REST Options
 		RESTURL  string `json:"restUrl,omitempty"`
 		RESTAuth string `json:"restAuth,omitempty"`
 	}
 
-	// Ajout de la configuration du gestionnaire de rôles
+	// Add RoleManager struct
 	RoleManager struct {
-		// Type du gestionnaire (local ou external)
+		// Managee type (local, external)
 		Type string `json:"type"`
 
-		// Connection externe (si type = external)
 		ExternalConn string `json:"externalConn,omitempty"`
 
-		// Configuration des tables et colonnes pour le type external
 		RoleTable      string `json:"roleTable,omitempty"`
 		GroupTable     string `json:"groupTable,omitempty"`
 		UserRoleTable  string `json:"userRoleTable,omitempty"`
@@ -55,8 +60,17 @@ type Config struct {
 		UserGroupUserCol  string `json:"userGroupUserCol,omitempty"`
 		UserGroupGroupCol string `json:"userGroupGroupCol,omitempty"`
 
-		// Inclure les rôles dans le JWT
 		IncludeRolesInJWT bool `json:"includeRolesInJWT,omitempty"`
+	}
+
+	// Rate limiting configuration
+	RateLimit struct {
+		Enabled           bool
+		MaxAttempts       int
+		BlockDuration     time.Duration
+		CounterExpiration time.Duration
+		Provider          string // "memcached", "redis", etc.
+		ConnectionURL     string // "localhost:11211" for Memcached, "redis://..." pour Redis
 	}
 }
 
@@ -69,6 +83,9 @@ func Load() {
 		JWTSecret:      getEnv("JWT_SECRET", "supersecretkey"),
 		FrontendOrigin: getEnv("FRONTEND_ORIGIN", "http://localhost:3000"),
 	}
+
+	// Admin JWT secret
+	App.Admin.JWTSecret = getEnv("ADMIN_JWT_SECRET", App.JWTSecret)
 
 	// User provider configuration
 	App.UserProvider.Type = getEnv("USER_PROVIDER_TYPE", "default")
@@ -86,7 +103,7 @@ func Load() {
 	App.RoleManager.ExternalConn = getEnv("ROLE_MANAGER_EXTERNAL_CONN", App.UserProvider.SQLConn)
 	App.RoleManager.IncludeRolesInJWT = getEnvBool("ROLE_MANAGER_INCLUDE_IN_JWT", true)
 
-	// Tables et colonnes pour le rôle manager externe
+	// Table names and column names
 	App.RoleManager.RoleTable = getEnv("ROLE_MANAGER_ROLE_TABLE", "roles")
 	App.RoleManager.GroupTable = getEnv("ROLE_MANAGER_GROUP_TABLE", "groups")
 	App.RoleManager.UserRoleTable = getEnv("ROLE_MANAGER_USER_ROLE_TABLE", "user_roles")
@@ -108,6 +125,16 @@ func Load() {
 	App.RoleManager.UserGroupUserCol = getEnv("ROLE_MANAGER_USER_GROUP_USER_COL", "user_id")
 	App.RoleManager.UserGroupGroupCol = getEnv("ROLE_MANAGER_USER_GROUP_GROUP_COL", "group_id")
 
+	// Rate limiting configuration
+	App.RateLimit.Enabled = getEnvBool("RATE_LIMIT_ENABLED", true)
+	App.RateLimit.MaxAttempts = getEnvInt("RATE_LIMIT_MAX_ATTEMPTS", 5)
+	blockMinutes := getEnvInt("RATE_LIMIT_BLOCK_MINUTES", 30)
+	App.RateLimit.BlockDuration = time.Duration(blockMinutes) * time.Minute
+	counterHours := getEnvInt("RATE_LIMIT_COUNTER_HOURS", 24)
+	App.RateLimit.CounterExpiration = time.Duration(counterHours) * time.Hour
+	App.RateLimit.Provider = getEnv("RATE_LIMIT_PROVIDER", "memcached")
+	App.RateLimit.ConnectionURL = getEnv("RATE_LIMIT_CONNECTION_URL", "localhost:11211")
+
 	log.Println("✅ Configuration loaded")
 }
 
@@ -118,10 +145,18 @@ func getEnv(key, defaultVal string) string {
 	return defaultVal
 }
 
-// Nouvelle fonction pour charger une variable d'env booléenne
 func getEnvBool(key string, defaultVal bool) bool {
 	if val, exists := os.LookupEnv(key); exists {
 		return val == "true" || val == "1" || val == "yes"
+	}
+	return defaultVal
+}
+
+func getEnvInt(key string, defaultVal int) int {
+	if val, exists := os.LookupEnv(key); exists {
+		if intVal, err := strconv.Atoi(val); err == nil {
+			return intVal
+		}
 	}
 	return defaultVal
 }

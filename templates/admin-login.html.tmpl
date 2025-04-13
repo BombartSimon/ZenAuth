@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign In - {{.ClientID}}</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <title>ZenAuth Admin Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
       --radius: 0.75rem;
@@ -45,8 +45,7 @@
     }
 
     .card-header img {
-      width: 280px;
-      height: 280px;
+      width: 200px;
       margin-bottom: 0.75rem;
     }
 
@@ -102,27 +101,6 @@
       background-color: var(--primary-hover);
     }
 
-    .divider {
-      text-align: center;
-      margin: 1.5rem 0;
-      color: var(--subtle-text);
-      font-size: 0.875rem;
-    }
-
-    .social-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 0.75rem;
-      background-color: #1f2937;
-      border-radius: var(--radius);
-      color: white;
-      font-size: 0.95rem;
-      text-decoration: none;
-      margin-bottom: 0.5rem;
-    }
-
     .error-message {
       background: #dc2626;
       color: white;
@@ -131,30 +109,30 @@
       margin-bottom: 1rem;
       font-size: 0.9rem;
     }
+    
+    .admin-notice {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--subtle-text);
+    }
   </style>
 </head>
 <body>
   <div class="card">
     <div class="card-header">
-      <img src="/static/logo.png" alt="ZenAuth Logo">
-      <h1>Sign in to {{.ClientID}}</h1>
+      <img src="/admin/assets/logo.png" alt="ZenAuth Logo">
+      <h1>Admin Console Login</h1>
     </div>
 
     {{if .Error}}
     <div class="error-message">{{.Error}}</div>
     {{end}}
 
-    <form method="POST">
-      <input type="hidden" name="client_id" value="{{.ClientID}}">
-      <input type="hidden" name="redirect_uri" value="{{.RedirectURI}}">
-      <input type="hidden" name="code_challenge" value="{{.CodeChallenge}}">
-      <input type="hidden" name="code_challenge_method" value="{{.CodeChallengeMethod}}">
-      <input type="hidden" name="scope" value="{{.Scope}}">
-      <input type="hidden" name="state" value="{{.State}}">
-
+    <form method="POST" action="/admin/login/submit">
       <div class="form-group">
-        <label for="identifier">Username or Email</label>
-        <input id="identifier" name="identifier" type="text" required autocomplete="username email">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" required autocomplete="username">
       </div>
 
       <div class="form-group">
@@ -164,15 +142,10 @@
 
       <button type="submit" class="btn">Sign In</button>
     </form>
-
-    {{if .ExternalProviders}}
-    <div class="divider">or continue with</div>
-    {{range .ExternalProviders}}
-    <a href="/auth/external?provider={{.ID}}&client_id={{$.ClientID}}&redirect_uri={{$.RedirectURI}}" class="social-btn">
-      <i class="fab fa-{{.Type}}"></i> Continue with {{.Name}}
-    </a>
-    {{end}}
-    {{end}}
+    
+    <div class="admin-notice">
+      <i class="fas fa-info-circle"></i> Authentication uses local ZenAuth database only
+    </div>
   </div>
 </body>
 </html>
