@@ -2,13 +2,152 @@ package handlers
 
 import (
 	"encoding/json"
+	"html/template"
 	"net/http"
 	"strings"
+	"time"
+	"zenauth/config"
 	sProviders "zenauth/internal/adapters/sessions"
 	uProviders "zenauth/internal/adapters/users"
 	"zenauth/internal/models"
 	"zenauth/internal/repositories"
+
+	"github.com/golang-jwt/jwt"
+	"golang.org/x/crypto/bcrypt"
 )
+
+// AdminLoginPageHandler displays the admin login page
+func AdminLoginPageHandler(w http.ResponseWriter, r *http.Request) {
+	var data struct {
+		Error string
+	}
+
+	// Check if there's an error parameter
+	if errMsg := r.URL.Query().Get("error"); errMsg != "" {
+		data.Error = errMsg
+	}
+
+	// Render the admin login template
+	renderTemplate(w, "templates/admin-login.html.tmpl", data)
+}
+
+// AdminLoginHandler handles admin authentication against the local database only
+func AdminLoginHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		http.Redirect(w, r, "/admin/login?error=Invalid+request", http.StatusSeeOther)
+		return
+	}
+
+	username := r.Form.Get("username")
+	password := r.Form.Get("password")
+
+	db := repositories.GetDB()
+	var user models.User
+
+	// Note: We're using the local database directly here, not any external user provider
+	result := db.QueryRow("SELECT id, username, password_hash FROM users WHERE username = $1", username)
+	err = result.Scan(&user.ID, &user.Username, &user.PasswordHash)
+	if err != nil {
+		http.Redirect(w, r, "/admin/login?error=Invalid+credentials", http.StatusSeeOther)
+		return
+	}
+
+	// Verify password
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
+	if err != nil {
+		http.Redirect(w, r, "/admin/login?error=Invalid+credentials", http.StatusSeeOther)
+		return
+	}
+
+	// Create admin JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub":      user.ID,
+		"username": user.Username,
+		"admin":    true,
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+	})
+
+	// Sign the token with your secret
+	jwtSecret := []byte(getJWTSecret())
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		http.Redirect(w, r, "/admin/login?error=Authentication+error", http.StatusSeeOther)
+		return
+	}
+
+	// Set the token as an HTTP-only cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "admin_token",
+		Value:    tokenString,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   r.TLS != nil, // Set to true in production with HTTPS
+		MaxAge:   60 * 60 * 24, // 24 hours
+	})
+
+	// Redirect to admin dashboard
+	http.Redirect(w, r, "/admin/", http.StatusSeeOther)
+}
+
+// Admin authentication middleware
+func AdminAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get the token from cookie
+		cookie, err := r.Cookie("admin_token")
+		if err != nil {
+			http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+			return
+		}
+
+		// Parse and validate token
+		token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
+			return []byte(getJWTSecret()), nil
+		})
+
+		if err != nil || !token.Valid {
+			// Clear invalid cookie
+			http.SetCookie(w, &http.Cookie{
+				Name:   "admin_token",
+				Value:  "",
+				Path:   "/",
+				MaxAge: -1,
+			})
+			http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+			return
+		}
+
+		// Check admin claim
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok || claims["admin"] != true {
+			http.Redirect(w, r, "/admin/login?error=Not+authorized", http.StatusSeeOther)
+			return
+		}
+
+		// Proceed with the request
+		next.ServeHTTP(w, r)
+	})
+}
+
+// Helper function to get JWT secret
+func getJWTSecret() string {
+	return config.App.Admin.JWTSecret
+}
+
+// Helper function to render templates
+func renderTemplate(w http.ResponseWriter, templateName string, data interface{}) {
+	tmpl, err := template.ParseFiles(templateName)
+	if err != nil {
+		http.Error(w, "Failed to load template", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		http.Error(w, "Failed to render template", http.StatusInternalServerError)
+	}
+}
 
 // AdminUsersHandler handles requests to the /admin/users endpoint
 func AdminUsersHandler(w http.ResponseWriter, r *http.Request) {

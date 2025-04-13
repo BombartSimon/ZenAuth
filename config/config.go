@@ -12,7 +12,12 @@ type Config struct {
 	DatabaseURL    string
 	JWTSecret      string
 	FrontendOrigin string
-	UserProvider   struct {
+
+	Admin struct {
+		JWTSecret string
+	}
+
+	UserProvider struct {
 		Type string `json:"type"` // "sql", "rest"
 		// SQL Options
 		SQLConn       string `json:"sqlConn,omitempty"`
@@ -78,6 +83,9 @@ func Load() {
 		JWTSecret:      getEnv("JWT_SECRET", "supersecretkey"),
 		FrontendOrigin: getEnv("FRONTEND_ORIGIN", "http://localhost:3000"),
 	}
+
+	// Admin JWT secret
+	App.Admin.JWTSecret = getEnv("ADMIN_JWT_SECRET", App.JWTSecret)
 
 	// User provider configuration
 	App.UserProvider.Type = getEnv("USER_PROVIDER_TYPE", "default")

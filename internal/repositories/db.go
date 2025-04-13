@@ -19,6 +19,10 @@ func InitPostgres(connStr string) error {
 	return db.Ping()
 }
 
+func GetDB() *sql.DB {
+	return db
+}
+
 func GetUserByUsername(username string) (*models.User, error) {
 	row := db.QueryRow("SELECT id, username, password_hash FROM users WHERE username = $1", username)
 	var user models.User

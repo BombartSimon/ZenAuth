@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZenAuth Admin Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --radius: 0.75rem;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --border: #e5e7eb;
+      --input-bg: #f9fafb;
+      --text: #111827;
+      --subtle-text: #6b7280;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background-color: #f1f5f9;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+    }
+
+    .card {
+      background-color: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+      padding: 2rem;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .card-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .card-header img {
+      width: 200px;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.625rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background-color: var(--input-bg);
+      font-size: 1rem;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: var(--primary);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .error-message {
+      background: #dc2626;
+      color: white;
+      padding: 0.75rem;
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    
+    .admin-notice {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--subtle-text);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <img src="/admin/assets/logo.png" alt="ZenAuth Logo">
+      <h1>Admin Console Login</h1>
+    </div>
+
+    {{if .Error}}
+    <div class="error-message">{{.Error}}</div>
+    {{end}}
+
+    <form method="POST" action="/admin/login/submit">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" required autocomplete="username">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" required autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="btn">Sign In</button>
+    </form>
+    
+    <div class="admin-notice">
+      <i class="fas fa-info-circle"></i> Authentication uses local ZenAuth database only
+    </div>
+  </div>
+</body>
+</html>
