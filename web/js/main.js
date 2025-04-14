@@ -1,9 +1,9 @@
-
 import store from './state/store.js';
 import * as userManager from './modules/userManager.js';
 import * as clientManager from './modules/clientManager.js';
 import * as providerManager from './modules/providerManager.js';
 import * as uiManager from './modules/uiManager.js';
+import { initUIEffects, showNotification } from './utils/ui-effects.js';
 
 // Références DOM globales
 const elements = {
@@ -568,6 +568,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // S'abonner aux changements d'état
     initStateSubscriptions();
 
+    // Initialiser les effets UI
+    initUIEffects();
+
     // Charger les données initiales
     loadInitialData();
+
+    // Afficher un message de bienvenue
+    setTimeout(() => {
+        showNotification('Bienvenue dans ZenAuth Admin Console', 'info', 5000);
+    }, 1000);
 });
