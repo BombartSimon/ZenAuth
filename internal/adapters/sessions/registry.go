@@ -47,23 +47,23 @@ func InitSessions() error {
 	return nil
 }
 
-// RegisterLimiter initialise et enregistre un limiter
+// RegisterLimiter initializes and registers a limiter
 func RegisterLimiter(limiter Limiter) {
 	CurrentLimiter = limiter
 }
 
-// IsLimiterEnabled vérifie si le rate limiting est activé et configuré
+// IsLimiterEnabled checks if rate limiting is enabled and configured
 func IsLimiterEnabled() bool {
 	return config.App.RateLimit.Enabled && CurrentLimiter != nil
 }
 
-// CheckRateLimit vérifie si un identifiant est bloqué
+// CheckRateLimit checks if an identifier is blocked
 func CheckRateLimit(identifier string) (bool, string, error) {
 	if !IsLimiterEnabled() {
 		return false, "", nil
 	}
 
-	// Vérifier si l'identifiant est bloqué
+	// Check if the identifier is blocked
 	blocked, err := CurrentLimiter.IsBlocked(identifier)
 	if err != nil {
 		return false, "", fmt.Errorf("rate limit check error: %w", err)
@@ -76,7 +76,7 @@ func CheckRateLimit(identifier string) (bool, string, error) {
 	return false, "", nil
 }
 
-// RecordFailedLoginAttempt enregistre un échec de connexion et gère le rate limiting
+// RecordFailedLoginAttempt records a failed login attempt and handles rate limiting
 func RecordFailedLoginAttempt(identifier string) (int, error) {
 	if !IsLimiterEnabled() {
 		return 0, nil
@@ -93,7 +93,7 @@ func RecordFailedLoginAttempt(identifier string) (int, error) {
 	return attempts, nil
 }
 
-// ResetLoginAttempts réinitialise les compteurs après une connexion réussie
+// ResetLoginAttempts resets counters after a successful login
 func ResetLoginAttempts(identifier string) error {
 	if !IsLimiterEnabled() {
 		return nil
@@ -114,7 +114,7 @@ func GetBlockedIdentifiers() ([]string, error) {
 	return CurrentLimiter.GetBlockedIdentifiers()
 }
 
-// GetRemainingBlockTime retourne le temps restant avant déblocage
+// GetRemainingBlockTime returns the time remaining before unblocking
 func GetRemainingBlockTime(identifier string) (string, error) {
 	if !IsLimiterEnabled() {
 		return "0 minutes", nil

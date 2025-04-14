@@ -18,14 +18,14 @@ type RedisLimiter struct {
 func NewRedisLimiter(redisURL string, config LimiterConfig) (*RedisLimiter, error) {
 	opts, err := redis.ParseURL(redisURL)
 	if err != nil {
-		return nil, fmt.Errorf("URL Redis invalide: %w", err)
+		return nil, fmt.Errorf("invalid Redis URL: %w", err)
 	}
 
 	client := redis.NewClient(opts)
 	ctx := context.Background()
 
 	if err := client.Ping(ctx).Err(); err != nil {
-		return nil, fmt.Errorf("échec de connexion à Redis: %w", err)
+		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
 	}
 
 	return &RedisLimiter{
@@ -80,39 +80,39 @@ func (r *RedisLimiter) Reset(identifier string) error {
 
 	if strings.HasPrefix(identifier, "user:") {
 		username := strings.TrimPrefix(identifier, "user:")
-		log.Printf("Recherche des IPs associées à l'utilisateur '%s'", username)
+		log.Printf("Searching for IPs associated with user '%s'", username)
 
 		ips, err := r.GetIPsForUser(username)
 		if err != nil {
-			log.Printf("Erreur lors de la récupération des IPs pour l'utilisateur '%s': %v", username, err)
+			log.Printf("Error retrieving IPs for user '%s': %v", username, err)
 		} else {
-			log.Printf("IPs trouvées pour l'utilisateur '%s': %v", username, ips)
+			log.Printf("IPs found for user '%s': %v", username, ips)
 
 			for _, ip := range ips {
 				ipFailedKey := fmt.Sprintf("failed_attempts:%s", ip)
 				ipBlockedKey := fmt.Sprintf("blocked:%s", ip)
 				keysToDelete = append(keysToDelete, ipFailedKey, ipBlockedKey)
 
-				log.Printf("Ajout des clés à supprimer pour l'IP '%s': %s, %s", ip, ipFailedKey, ipBlockedKey)
+				log.Printf("Adding keys to delete for IP '%s': %s, %s", ip, ipFailedKey, ipBlockedKey)
 			}
 
 			keysToDelete = append(keysToDelete, fmt.Sprintf("user_ips:%s", username))
 		}
 	} else {
-		log.Printf("Recherche des utilisateurs associés à l'IP '%s'", identifier)
+		log.Printf("Searching for users associated with IP '%s'", identifier)
 
 		users, err := r.GetUsersForIP(identifier)
 		if err != nil {
-			log.Printf("Erreur lors de la récupération des utilisateurs pour l'IP '%s': %v", identifier, err)
+			log.Printf("Error retrieving users for IP '%s': %v", identifier, err)
 		} else {
-			log.Printf("Utilisateurs trouvés pour l'IP '%s': %v", identifier, users)
+			log.Printf("Users found for IP '%s': %v", identifier, users)
 
 			for _, user := range users {
 				userFailedKey := fmt.Sprintf("failed_attempts:user:%s", user)
 				userBlockedKey := fmt.Sprintf("blocked:user:%s", user)
 				keysToDelete = append(keysToDelete, userFailedKey, userBlockedKey)
 
-				log.Printf("Ajout des clés à supprimer pour l'utilisateur '%s': %s, %s", user, userFailedKey, userBlockedKey)
+				log.Printf("Adding keys to delete for user '%s': %s, %s", user, userFailedKey, userBlockedKey)
 			}
 
 			keysToDelete = append(keysToDelete, fmt.Sprintf("ip_users:%s", identifier))
@@ -120,10 +120,10 @@ func (r *RedisLimiter) Reset(identifier string) error {
 	}
 
 	if len(keysToDelete) > 0 {
-		log.Printf("Suppression des clés: %v", keysToDelete)
+		log.Printf("Deleting keys: %v", keysToDelete)
 		err := r.client.Del(ctx, keysToDelete...).Err()
 		if err != nil {
-			return fmt.Errorf("erreur lors de la suppression des clés: %w", err)
+			return fmt.Errorf("error deleting keys: %w", err)
 		}
 	}
 
@@ -176,16 +176,16 @@ func (r *RedisLimiter) RecordUserIP(username, ipAddress string) error {
 	ipUsersKey := fmt.Sprintf("ip_users:%s", ipAddress)
 
 	if err := r.client.SAdd(ctx, userIPsKey, ipAddress).Err(); err != nil {
-		return fmt.Errorf("erreur lors de l'ajout de l'IP pour l'utilisateur: %w", err)
+		return fmt.Errorf("error adding IP for user: %w", err)
 	}
 	r.client.Expire(ctx, userIPsKey, r.config.CounterExpiration)
 
 	if err := r.client.SAdd(ctx, ipUsersKey, username).Err(); err != nil {
-		return fmt.Errorf("erreur lors de l'ajout de l'utilisateur pour l'IP: %w", err)
+		return fmt.Errorf("error adding user for IP: %w", err)
 	}
 	r.client.Expire(ctx, ipUsersKey, r.config.CounterExpiration)
 
-	log.Printf("Association enregistrée entre utilisateur '%s' et IP '%s'", username, ipAddress)
+	log.Printf("Association recorded between user '%s' and IP '%s'", username, ipAddress)
 	return nil
 }
 
@@ -198,7 +198,7 @@ func (r *RedisLimiter) GetIPsForUser(username string) ([]string, error) {
 		return []string{}, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("erreur lors de la récupération des IPs: %w", err)
+		return nil, fmt.Errorf("error retrieving IPs: %w", err)
 	}
 
 	return ips, nil
@@ -213,7 +213,7 @@ func (r *RedisLimiter) GetUsersForIP(ipAddress string) ([]string, error) {
 		return []string{}, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("erreur lors de la récupération des utilisateurs: %w", err)
+		return nil, fmt.Errorf("error retrieving users: %w", err)
 	}
 
 	return users, nil

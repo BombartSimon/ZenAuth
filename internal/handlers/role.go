@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	rProviders "zenauth/internal/adapters/role"
+
+	"github.com/gorilla/mux"
 )
 
 // AdminRolesHandler handles requests to the /admin/roles endpoint
@@ -21,8 +23,9 @@ func AdminRolesHandler(w http.ResponseWriter, r *http.Request) {
 
 // AdminRoleHandler handles requests to the /admin/roles/{id} endpoint
 func AdminRoleHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract role ID from path
-	id := r.URL.Path[len("/admin/roles/"):]
+	// Extract role ID from mux vars
+	vars := mux.Vars(r)
+	id := vars["id"]
 
 	switch r.Method {
 	case http.MethodGet:
@@ -50,8 +53,9 @@ func AdminGroupsHandler(w http.ResponseWriter, r *http.Request) {
 
 // AdminGroupHandler handles requests to the /admin/groups/{id} endpoint
 func AdminGroupHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract group ID from path
-	id := r.URL.Path[len("/admin/groups/"):]
+	// Extract group ID from mux vars
+	vars := mux.Vars(r)
+	id := vars["id"]
 
 	switch r.Method {
 	case http.MethodGet:

@@ -12,14 +12,15 @@
 
     <h2>Token Response</h2>
     <pre id="output"></pre>
+    <div id="error" style="color: red;"></div>
 
     <script>
         const clientId = "demo-client";
         const redirectUri = "http://localhost:3000";
         const authServer = "http://localhost:8080";
-        const scope = "read write";  // Ajout des scopes ici
+        const scope = "read write";  // Scopes added here
 
-        // Utilitaires PKCE
+        // PKCE utilities
         async function generateCodeVerifier() {
             const array = new Uint8Array(32);
             crypto.getRandomValues(array);
@@ -27,55 +28,102 @@
                 .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
         }
 
+        // SHA-256 hash function with availability check
         async function sha256(text) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(text);
-            const hash = await crypto.subtle.digest("SHA-256", data);
-            return new Uint8Array(hash);
+            try {
+                // Check if crypto.subtle is available (secure context)
+                if (window.crypto && window.crypto.subtle) {
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(text);
+                    const hash = await window.crypto.subtle.digest("SHA-256", data);
+                    return new Uint8Array(hash);
+                } else {
+                    // Use an alternative for non-HTTPS contexts
+                    console.warn("Web Crypto API not available. Using alternative method.");
+                    return simpleHash(text);
+                }
+            } catch (error) {
+                console.error("Error during hashing:", error);
+                document.getElementById("error").textContent = "Hash error: " + error.message;
+                throw error;
+            }
+        }
+
+        // Simple alternative hashing method for non-HTTPS contexts
+        // Note: This is not cryptographically secure, only for development
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            // Create a 32-byte array from the hash
+            const result = new Uint8Array(32);
+            for (let i = 0; i < 32; i++) {
+                result[i] = (hash >> (i % 8)) & 0xFF;
+            }
+            return result;
         }
 
         async function generateCodeChallenge(verifier) {
-            const hashed = await sha256(verifier);
-            return btoa(String.fromCharCode(...hashed))
-                .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+            try {
+                const hashed = await sha256(verifier);
+                return btoa(String.fromCharCode.apply(null, [...hashed]))
+                    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+            } catch (error) {
+                console.error("Error generating code challenge:", error);
+                document.getElementById("error").textContent = "Error: " + error.message;
+                throw error;
+            }
         }
 
-        // Démarre l'auth
+        // Start authentication
         async function startAuth() {
-            const codeVerifier = await generateCodeVerifier();
-            const codeChallenge = await generateCodeChallenge(codeVerifier);
-            sessionStorage.setItem("code_verifier", codeVerifier);
+            try {
+                const codeVerifier = await generateCodeVerifier();
+                const codeChallenge = await generateCodeChallenge(codeVerifier);
+                sessionStorage.setItem("code_verifier", codeVerifier);
 
-            // Inclure les scopes dans l'URL d'autorisation
-            const authUrl = `${authServer}/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge=${codeChallenge}&code_challenge_method=S256&scope=${encodeURIComponent(scope)}`;
+                // Include scopes in the authorization URL
+                const authUrl = `${authServer}/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge=${codeChallenge}&code_challenge_method=S256&scope=${encodeURIComponent(scope)}`;
 
-            window.location.href = authUrl;  // Rediriger l'utilisateur
+                window.location.href = authUrl;  // Redirect the user
+            } catch (error) {
+                console.error("Authentication error:", error);
+                document.getElementById("error").textContent = "Authentication error: " + error.message;
+            }
         }
 
-        // Si code dans l'URL → échange token
+        // If code in URL → token exchange
         window.onload = async function () {
-            const params = new URLSearchParams(window.location.search);
-            const code = params.get("code");
-            if (code) {
-                const codeVerifier = sessionStorage.getItem("code_verifier");
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const code = params.get("code");
+                if (code) {
+                    const codeVerifier = sessionStorage.getItem("code_verifier");
 
-                const form = new URLSearchParams();
-                form.append("grant_type", "authorization_code");
-                form.append("code", code);
-                form.append("redirect_uri", redirectUri);
-                form.append("code_verifier", codeVerifier);
+                    const form = new URLSearchParams();
+                    form.append("grant_type", "authorization_code");
+                    form.append("code", code);
+                    form.append("redirect_uri", redirectUri);
+                    form.append("code_verifier", codeVerifier);
 
-                // Inclure les scopes dans le corps de la requête de token
-                form.append("scope", scope);
+                    // Include scopes in the token request body
+                    form.append("scope", scope);
 
-                const response = await fetch(`${authServer}/token`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: form
-                });
+                    const response = await fetch(`${authServer}/token`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: form
+                    });
 
-                const json = await response.json();
-                document.getElementById("output").textContent = JSON.stringify(json, null, 2);
+                    const json = await response.json();
+                    document.getElementById("output").textContent = JSON.stringify(json, null, 2);
+                }
+            } catch (error) {
+                console.error("Error during token exchange:", error);
+                document.getElementById("error").textContent = "Error: " + error.message;
             }
         }
     </script>
