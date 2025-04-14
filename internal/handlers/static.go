@@ -27,6 +27,12 @@ func StaticFileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Special handling for JavaScript files
+	if strings.HasPrefix(path, "js/") {
+		serveWebFile(w, r, path)
+		return
+	}
+
 	// Construct the full file path
 	filePath := filepath.Join("./web", path)
 	log.Printf("Looking for file: %s", filePath)
@@ -124,4 +130,47 @@ func serveAssetFile(w http.ResponseWriter, r *http.Request, path string) {
 
 	// Serve the asset file
 	http.ServeContent(w, r, assetPath, info.ModTime(), file)
+}
+
+// serveWebFile serves files from the web directory, preserving the directory structure
+func serveWebFile(w http.ResponseWriter, r *http.Request, path string) {
+	// Construct the full web file path
+	filePath := filepath.Join("./web", path)
+	log.Printf("Looking for web file: %s", filePath)
+
+	// Open the web file
+	file, err := os.Open(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Printf("Web file not found: %s", filePath)
+			http.Error(w, "File not found", http.StatusNotFound)
+			return
+		}
+		log.Printf("Error opening web file: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	// Get file info
+	info, err := file.Stat()
+	if err != nil {
+		log.Printf("Error getting web file info: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Set content-type based on file extension
+	ext := filepath.Ext(path)
+	switch ext {
+	case ".js":
+		w.Header().Set("Content-Type", "application/javascript")
+	case ".css":
+		w.Header().Set("Content-Type", "text/css")
+	case ".json":
+		w.Header().Set("Content-Type", "application/json")
+	}
+
+	// Serve the web file
+	http.ServeContent(w, r, path, info.ModTime(), file)
 }

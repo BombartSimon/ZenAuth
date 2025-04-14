@@ -1,7 +1,4 @@
-/**
- * Point d'entrée principal de l'application ZenAuth Admin
- * Orchestre tous les modules et initialise l'application
- */
+
 import store from './state/store.js';
 import * as userManager from './modules/userManager.js';
 import * as clientManager from './modules/clientManager.js';
@@ -79,12 +76,28 @@ function initEventListeners() {
         elements.userForm.addEventListener('submit', handleUserFormSubmit);
     }
 
+    // Événement pour le bouton Cancel des utilisateurs
+    const cancelUserBtn = document.getElementById('cancel-btn');
+    if (cancelUserBtn) {
+        cancelUserBtn.addEventListener('click', () => {
+            uiManager.toggleModal(elements.userModal, false);
+        });
+    }
+
     // Événements pour la gestion des clients
     if (elements.addClientBtn) {
         elements.addClientBtn.addEventListener('click', showAddClientModal);
     }
     if (elements.clientForm) {
         elements.clientForm.addEventListener('submit', handleClientFormSubmit);
+    }
+
+    // Événement pour le bouton Cancel des clients
+    const cancelClientBtn = document.getElementById('cancel-client-btn');
+    if (cancelClientBtn) {
+        cancelClientBtn.addEventListener('click', () => {
+            uiManager.toggleModal(elements.clientModal, false);
+        });
     }
 
     // Événements pour la gestion des providers
@@ -97,6 +110,14 @@ function initEventListeners() {
     if (elements.providerType) {
         elements.providerType.addEventListener('change', function () {
             toggleTenantIdField(this.value);
+        });
+    }
+
+    // Événement pour le bouton Cancel des providers
+    const cancelProviderBtn = document.getElementById('cancel-provider-btn');
+    if (cancelProviderBtn) {
+        cancelProviderBtn.addEventListener('click', () => {
+            uiManager.toggleModal(elements.providerModal, false);
         });
     }
 
@@ -114,6 +135,16 @@ function initEventListeners() {
             uiManager.toggleModal(elements.deleteModal, false);
         });
     }
+
+    // Ajout des gestionnaires pour les croix de fermeture des modales
+    document.querySelectorAll('.modal .close').forEach(closeBtn => {
+        closeBtn.addEventListener('click', () => {
+            const modal = closeBtn.closest('.modal');
+            if (modal) {
+                uiManager.toggleModal(modal, false);
+            }
+        });
+    });
 }
 
 /**
