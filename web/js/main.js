@@ -487,18 +487,44 @@ async function confirmDelete() {
  * Charge les données initiales lors du chargement de la page
  */
 function loadInitialData() {
-    // Charger les données en fonction de la section active
-    const activeSection = store.getState('ui').activeSection;
+    // Afficher un indicateur de chargement global
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.className = 'global-loading-indicator';
+    loadingIndicator.innerHTML = '<div class="spinner"></div><span>Chargement des données...</span>';
+    document.body.appendChild(loadingIndicator);
 
-    if (activeSection === 'users') {
-        userManager.loadUsers();
-    } else if (activeSection === 'clients') {
-        clientManager.loadClients();
-    } else if (activeSection === 'providers') {
-        providerManager.loadProviders();
-    } else if (activeSection === 'blocked-users') {
-        userManager.loadBlockedUsers();
-    }
+    // Charger toutes les données en parallèle, indépendamment de la section active
+    Promise.all([
+        userManager.loadUsers(),
+        clientManager.loadClients(),
+        providerManager.loadProviders(),
+        userManager.loadBlockedUsers()
+    ])
+        .then(() => {
+            console.log('✅ Toutes les données ont été chargées avec succès');
+
+            // Masquer l'indicateur de chargement avec une transition
+            loadingIndicator.classList.add('fade-out');
+            setTimeout(() => {
+                document.body.removeChild(loadingIndicator);
+            }, 500);
+        })
+        .catch(error => {
+            console.error('❌ Erreur lors du chargement des données:', error);
+
+            // Transformer l'indicateur de chargement en message d'erreur
+            loadingIndicator.innerHTML = `
+            <div class="error-icon">❌</div>
+            <span>Erreur lors du chargement des données. <button id="retry-load">Réessayer</button></span>
+        `;
+            loadingIndicator.className = 'global-error-indicator';
+
+            // Ajouter un bouton pour réessayer
+            document.getElementById('retry-load').addEventListener('click', () => {
+                document.body.removeChild(loadingIndicator);
+                loadInitialData();
+            });
+        });
 }
 
 /**
