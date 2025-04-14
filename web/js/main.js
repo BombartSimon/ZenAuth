@@ -5,7 +5,7 @@ import * as providerManager from './modules/providerManager.js';
 import * as uiManager from './modules/uiManager.js';
 import { initUIEffects, showNotification } from './utils/ui-effects.js';
 
-// Références DOM globales
+// Global DOM references
 const elements = {
     // User elements
     usersList: document.getElementById('users-list'),
@@ -56,19 +56,19 @@ const elements = {
 };
 
 /**
- * Initialise les gestionnaires d'événements pour l'interface utilisateur
+ * Initialize event listeners for the user interface
  */
 function initEventListeners() {
-    // Initialise la navigation entre les sections
+    // Initialize navigation between sections
     uiManager.initNavigation();
 
-    // Initialise le thème
+    // Initialize theme
     uiManager.initThemeToggle();
 
-    // Configure les événements de clic à l'extérieur des modales
+    // Configure click events outside modals
     uiManager.setupModalOutsideClicks();
 
-    // Événements pour la gestion des utilisateurs
+    // Events for user management
     if (elements.addUserBtn) {
         elements.addUserBtn.addEventListener('click', showAddUserModal);
     }
@@ -76,7 +76,7 @@ function initEventListeners() {
         elements.userForm.addEventListener('submit', handleUserFormSubmit);
     }
 
-    // Événement pour le bouton Cancel des utilisateurs
+    // Event for Cancel button for users
     const cancelUserBtn = document.getElementById('cancel-btn');
     if (cancelUserBtn) {
         cancelUserBtn.addEventListener('click', () => {
@@ -84,7 +84,7 @@ function initEventListeners() {
         });
     }
 
-    // Événements pour la gestion des clients
+    // Events for client management
     if (elements.addClientBtn) {
         elements.addClientBtn.addEventListener('click', showAddClientModal);
     }
@@ -92,7 +92,7 @@ function initEventListeners() {
         elements.clientForm.addEventListener('submit', handleClientFormSubmit);
     }
 
-    // Événement pour le bouton Cancel des clients
+    // Event for Cancel button for clients
     const cancelClientBtn = document.getElementById('cancel-client-btn');
     if (cancelClientBtn) {
         cancelClientBtn.addEventListener('click', () => {
@@ -100,7 +100,7 @@ function initEventListeners() {
         });
     }
 
-    // Événements pour la gestion des providers
+    // Events for provider management
     if (elements.addProviderBtn) {
         elements.addProviderBtn.addEventListener('click', showAddProviderModal);
     }
@@ -113,7 +113,7 @@ function initEventListeners() {
         });
     }
 
-    // Événement pour le bouton Cancel des providers
+    // Event for Cancel button for providers
     const cancelProviderBtn = document.getElementById('cancel-provider-btn');
     if (cancelProviderBtn) {
         cancelProviderBtn.addEventListener('click', () => {
@@ -121,12 +121,15 @@ function initEventListeners() {
         });
     }
 
-    // Événements pour les utilisateurs bloqués
+    // Events for blocked users
     if (elements.refreshBlockedBtn) {
-        elements.refreshBlockedBtn.addEventListener('click', userManager.loadBlockedUsers);
+        elements.refreshBlockedBtn.addEventListener('click', () => {
+            // Forcer le rechargement des utilisateurs bloqués
+            userManager.loadBlockedUsers(true);
+        });
     }
 
-    // Événements pour la modale de suppression
+    // Events for delete modal
     if (elements.confirmDeleteBtn) {
         elements.confirmDeleteBtn.addEventListener('click', confirmDelete);
     }
@@ -136,7 +139,7 @@ function initEventListeners() {
         });
     }
 
-    // Ajout des gestionnaires pour les croix de fermeture des modales
+    // Add handlers for close buttons in modals
     document.querySelectorAll('.modal .close').forEach(closeBtn => {
         closeBtn.addEventListener('click', () => {
             const modal = closeBtn.closest('.modal');
@@ -148,68 +151,68 @@ function initEventListeners() {
 }
 
 /**
- * S'abonne aux changements d'état pour mettre à jour l'UI en conséquence
+ * Subscribe to state changes to update UI accordingly
  */
 function initStateSubscriptions() {
-    // S'abonner aux changements dans la liste des utilisateurs
+    // Subscribe to changes in the user list
     store.subscribe('users', (usersState) => {
         if (elements.usersList) {
             uiManager.renderUsersList(usersState.list, elements.usersList);
 
-            // Attacher les événements après avoir rendu la liste
+            // Attach events after rendering the list
             attachUserEventHandlers();
         }
     });
 
-    // S'abonner aux changements dans la liste des clients
+    // Subscribe to changes in the client list
     store.subscribe('clients', (clientsState) => {
         if (elements.clientsList) {
             uiManager.renderClientsList(clientsState.list, elements.clientsList);
 
-            // Attacher les événements après avoir rendu la liste
+            // Attach events after rendering the list
             attachClientEventHandlers();
         }
     });
 
-    // S'abonner aux changements dans la liste des providers
+    // Subscribe to changes in the provider list
     store.subscribe('providers', (providersState) => {
         if (elements.providersList) {
             uiManager.renderProvidersList(providersState.list, elements.providersList);
 
-            // Attacher les événements après avoir rendu la liste
+            // Attach events after rendering the list
             attachProviderEventHandlers();
         }
     });
 
-    // S'abonner aux changements dans la liste des utilisateurs bloqués
+    // Subscribe to changes in the blocked users list
     store.subscribe('blockedUsers', (blockedState) => {
         if (elements.blockedUsersList) {
             uiManager.renderBlockedUsersList(blockedState.groupedData, elements.blockedUsersList);
 
-            // Attacher les événements après avoir rendu la liste
+            // Attach events after rendering the list
             attachBlockedUsersEventHandlers();
         }
     });
 }
 
 /**
- * Attache les gestionnaires d'événements aux éléments de la liste des utilisateurs
+ * Attach event handlers to elements in the user list
  */
 function attachUserEventHandlers() {
-    // Gestionnaire pour le bouton de basculement de source
+    // Handler for source toggle button
     const toggleBtn = document.getElementById('toggle-source');
     if (toggleBtn) {
         toggleBtn.addEventListener('click', userManager.toggleUserSource);
     }
 
-    // Gestionnaires pour les boutons d'édition
+    // Handlers for edit buttons
     document.querySelectorAll('#users-list .action-btn.edit').forEach(btn => {
         btn.addEventListener('click', () => {
             showEditUserModal(btn.dataset.id, btn.dataset.username);
         });
     });
 
-    // Gestionnaires pour les boutons de suppression
+    // Handlers for delete buttons
     document.querySelectorAll('#users-list .action-btn.delete[data-type="user"]').forEach(btn => {
         btn.addEventListener('click', () => {
             uiManager.showDeleteConfirmation(btn.dataset.id, 'user', btn.dataset.name);
@@ -218,17 +221,17 @@ function attachUserEventHandlers() {
 }
 
 /**
- * Attache les gestionnaires d'événements aux éléments de la liste des clients
+ * Attach event handlers to elements in the client list
  */
 function attachClientEventHandlers() {
-    // Gestionnaires pour les boutons d'édition
+    // Handlers for edit buttons
     document.querySelectorAll('#clients-list .action-btn.edit').forEach(btn => {
         btn.addEventListener('click', () => {
             showEditClientModal(btn.dataset.id, btn.dataset.name, btn.dataset.secret, btn.dataset.uris);
         });
     });
 
-    // Gestionnaires pour les boutons de suppression
+    // Handlers for delete buttons
     document.querySelectorAll('#clients-list .action-btn.delete[data-type="client"]').forEach(btn => {
         btn.addEventListener('click', () => {
             uiManager.showDeleteConfirmation(btn.dataset.id, 'client', btn.dataset.name);
@@ -237,10 +240,10 @@ function attachClientEventHandlers() {
 }
 
 /**
- * Attache les gestionnaires d'événements aux éléments de la liste des providers
+ * Attach event handlers to elements in the provider list
  */
 function attachProviderEventHandlers() {
-    // Gestionnaires pour les boutons d'édition
+    // Handlers for edit buttons
     document.querySelectorAll('#providers-list .action-btn.edit').forEach(btn => {
         btn.addEventListener('click', () => {
             showEditProviderModal(
@@ -254,7 +257,7 @@ function attachProviderEventHandlers() {
         });
     });
 
-    // Gestionnaires pour les boutons de suppression
+    // Handlers for delete buttons
     document.querySelectorAll('#providers-list .action-btn.delete[data-type="provider"]').forEach(btn => {
         btn.addEventListener('click', () => {
             uiManager.showDeleteConfirmation(btn.dataset.id, 'provider', btn.dataset.name);
@@ -263,10 +266,10 @@ function attachProviderEventHandlers() {
 }
 
 /**
- * Attache les gestionnaires d'événements aux éléments de la liste des utilisateurs bloqués
+ * Attach event handlers to elements in the blocked users list
  */
 function attachBlockedUsersEventHandlers() {
-    // Gestionnaires pour les boutons de déblocage
+    // Handlers for unblock buttons
     document.querySelectorAll('#blocked-users-list .action-btn.unblock').forEach(btn => {
         btn.addEventListener('click', async () => {
             try {
@@ -274,19 +277,19 @@ function attachBlockedUsersEventHandlers() {
                     btn.dataset.identifier,
                     btn.dataset.type
                 );
-                alert(result.message || 'Débloqué avec succès');
+                alert(result.message || 'Successfully unblocked');
             } catch (error) {
-                // L'erreur est déjà gérée dans unblockUser
+                // Error is already handled in unblockUser
             }
         });
     });
 }
 
 /**
- * Gestion des modales utilisateur
+ * User modal management
  */
 function showAddUserModal() {
-    elements.modalTitle.textContent = 'Ajouter un utilisateur';
+    elements.modalTitle.textContent = 'Add User';
     elements.userId.value = '';
     elements.username.value = '';
     elements.password.value = '';
@@ -300,7 +303,7 @@ function showAddUserModal() {
 }
 
 function showEditUserModal(id, usernameValue) {
-    elements.modalTitle.textContent = 'Modifier un utilisateur';
+    elements.modalTitle.textContent = 'Edit User';
     elements.userId.value = id;
     elements.username.value = usernameValue;
     elements.password.value = '';
@@ -314,10 +317,10 @@ function showEditUserModal(id, usernameValue) {
 }
 
 /**
- * Gestion des modales client
+ * Client modal management
  */
 function showAddClientModal() {
-    elements.clientModalTitle.textContent = 'Ajouter un client OAuth';
+    elements.clientModalTitle.textContent = 'Add OAuth Client';
     elements.clientIdInput.value = '';
     elements.clientId.value = '';
     elements.clientId.readOnly = false;
@@ -334,7 +337,7 @@ function showAddClientModal() {
 }
 
 function showEditClientModal(id, name, secret, uris) {
-    elements.clientModalTitle.textContent = 'Modifier un client OAuth';
+    elements.clientModalTitle.textContent = 'Edit OAuth Client';
     elements.clientIdInput.value = id;
     elements.clientId.value = id;
     elements.clientId.readOnly = true;
@@ -351,10 +354,10 @@ function showEditClientModal(id, name, secret, uris) {
 }
 
 /**
- * Gestion des modales provider
+ * Provider modal management
  */
 function showAddProviderModal() {
-    elements.providerModalTitle.textContent = 'Ajouter un fournisseur d\'authentification';
+    elements.providerModalTitle.textContent = 'Add Authentication Provider';
     elements.providerId.value = '';
     elements.providerName.value = '';
     elements.providerType.value = 'google';
@@ -373,7 +376,7 @@ function showAddProviderModal() {
 }
 
 function showEditProviderModal(id, name, type, clientId, tenantId, enabled) {
-    elements.providerModalTitle.textContent = 'Modifier un fournisseur d\'authentification';
+    elements.providerModalTitle.textContent = 'Edit Authentication Provider';
     elements.providerId.value = id;
     elements.providerName.value = name;
     elements.providerType.value = type;
@@ -398,7 +401,7 @@ function toggleTenantIdField(providerType) {
 }
 
 /**
- * Gestionnaires de soumission des formulaires
+ * Form submission handlers
  */
 async function handleUserFormSubmit(e) {
     e.preventDefault();
@@ -421,7 +424,7 @@ async function handleUserFormSubmit(e) {
 
         uiManager.toggleModal(elements.userModal, false);
     } catch (error) {
-        // L'erreur est déjà gérée dans les méthodes userManager
+        // Error is already handled in userManager methods
     }
 }
 
@@ -450,7 +453,7 @@ async function handleClientFormSubmit(e) {
 
         uiManager.toggleModal(elements.clientModal, false);
     } catch (error) {
-        // L'erreur est déjà gérée dans les méthodes clientManager
+        // Error is already handled in clientManager methods
     }
 }
 
@@ -484,12 +487,12 @@ async function handleProviderFormSubmit(e) {
 
         uiManager.toggleModal(elements.providerModal, false);
     } catch (error) {
-        // L'erreur est déjà gérée dans les méthodes providerManager
+        // Error is already handled in providerManager methods
     }
 }
 
 /**
- * Confirme la suppression d'un élément
+ * Confirm item deletion
  */
 async function confirmDelete() {
     const deleteState = store.getState('ui').modals.delete;
@@ -510,21 +513,21 @@ async function confirmDelete() {
 
         uiManager.toggleModal(elements.deleteModal, false);
     } catch (error) {
-        // L'erreur est déjà gérée dans les méthodes des managers
+        // Error is already handled in manager methods
     }
 }
 
 /**
- * Charge les données initiales lors du chargement de la page
+ * Load initial data when page loads
  */
 function loadInitialData() {
-    // Afficher un indicateur de chargement global
+    // Display a global loading indicator
     const loadingIndicator = document.createElement('div');
     loadingIndicator.className = 'global-loading-indicator';
-    loadingIndicator.innerHTML = '<div class="spinner"></div><span>Chargement des données...</span>';
+    loadingIndicator.innerHTML = '<div class="spinner"></div><span>Loading data...</span>';
     document.body.appendChild(loadingIndicator);
 
-    // Charger toutes les données en parallèle, indépendamment de la section active
+    // Load all data in parallel, independently of the active section
     Promise.all([
         userManager.loadUsers(),
         clientManager.loadClients(),
@@ -532,25 +535,25 @@ function loadInitialData() {
         userManager.loadBlockedUsers()
     ])
         .then(() => {
-            console.log('✅ Toutes les données ont été chargées avec succès');
+            console.log('✅ All data successfully loaded');
 
-            // Masquer l'indicateur de chargement avec une transition
+            // Hide the loading indicator with a transition
             loadingIndicator.classList.add('fade-out');
             setTimeout(() => {
                 document.body.removeChild(loadingIndicator);
             }, 500);
         })
         .catch(error => {
-            console.error('❌ Erreur lors du chargement des données:', error);
+            console.error('❌ Error loading data:', error);
 
-            // Transformer l'indicateur de chargement en message d'erreur
+            // Transform loading indicator into an error message
             loadingIndicator.innerHTML = `
             <div class="error-icon">❌</div>
-            <span>Erreur lors du chargement des données. <button id="retry-load">Réessayer</button></span>
+            <span>Error loading data. <button id="retry-load">Retry</button></span>
         `;
             loadingIndicator.className = 'global-error-indicator';
 
-            // Ajouter un bouton pour réessayer
+            // Add button to retry
             document.getElementById('retry-load').addEventListener('click', () => {
                 document.body.removeChild(loadingIndicator);
                 loadInitialData();
@@ -559,23 +562,23 @@ function loadInitialData() {
 }
 
 /**
- * Initialisation de l'application
+ * Application initialization
  */
 document.addEventListener('DOMContentLoaded', function () {
-    // Initialiser les gestionnaires d'événements
+    // Initialize event handlers
     initEventListeners();
 
-    // S'abonner aux changements d'état
+    // Subscribe to state changes
     initStateSubscriptions();
 
-    // Initialiser les effets UI
+    // Initialize UI effects
     initUIEffects();
 
-    // Charger les données initiales
+    // Load initial data
     loadInitialData();
 
-    // Afficher un message de bienvenue
+    // Display welcome message
     setTimeout(() => {
-        showNotification('Bienvenue dans ZenAuth Admin Console', 'info', 5000);
+        showNotification('Welcome to ZenAuth Admin Console', 'info', 5000);
     }, 1000);
 });

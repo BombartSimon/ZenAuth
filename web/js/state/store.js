@@ -1,13 +1,13 @@
 /**
- * Gestionnaire d'état simple pour ZenAuth
- * Permet de centraliser la gestion des états entre les différentes parties de l'application
+ * Simple state manager for ZenAuth
+ * Centralizes state management between different parts of the application
  */
 const store = (function () {
-    // État privé de l'application
+    // Private application state
     const state = {
         users: {
             list: [],
-            source: 'local', // 'local' ou 'external'
+            source: 'local', // 'local' or 'external'
         },
         clients: {
             list: []
@@ -31,7 +31,7 @@ const store = (function () {
         }
     };
 
-    // Callbacks pour les souscripteurs
+    // Callbacks for subscribers
     const subscribers = {
         users: [],
         clients: [],
@@ -41,30 +41,30 @@ const store = (function () {
     };
 
     /**
-     * Met à jour une partie du state et notifie les souscripteurs
-     * @param {string} section - La section à mettre à jour ('users', 'clients', etc.)
-     * @param {object} newData - Les nouvelles données à fusionner
+     * Updates a part of the state and notifies subscribers
+     * @param {string} section - The section to update ('users', 'clients', etc.)
+     * @param {object} newData - The new data to merge
      */
     function update(section, newData) {
         if (!state[section]) {
-            console.error(`Section ${section} n'existe pas dans le store`);
+            console.error(`Section ${section} doesn't exist in the store`);
             return;
         }
 
-        // Fusion des données
+        // Data merging
         state[section] = { ...state[section], ...newData };
 
-        // Notification des souscripteurs
+        // Notify subscribers
         if (subscribers[section]) {
             subscribers[section].forEach(callback => callback(state[section]));
         }
     }
 
     /**
-     * S'abonne aux changements d'une section du state
-     * @param {string} section - La section à observer
-     * @param {function} callback - Fonction appelée lors des changements
-     * @returns {function} - Fonction pour se désabonner
+     * Subscribes to changes in a section of the state
+     * @param {string} section - The section to observe
+     * @param {function} callback - Function called on changes
+     * @returns {function} - Function to unsubscribe
      */
     function subscribe(section, callback) {
         if (!subscribers[section]) {
@@ -73,7 +73,7 @@ const store = (function () {
 
         subscribers[section].push(callback);
 
-        // Retourner une fonction de désabonnement
+        // Return an unsubscribe function
         return () => {
             const index = subscribers[section].indexOf(callback);
             if (index !== -1) {
@@ -83,15 +83,15 @@ const store = (function () {
     }
 
     /**
-     * Récupère l'état actuel d'une section
-     * @param {string} section - La section à récupérer
-     * @returns {object} - L'état de la section
+     * Gets the current state of a section
+     * @param {string} section - The section to retrieve
+     * @returns {object} - The state of the section
      */
     function getState(section) {
         return section ? { ...state[section] } : { ...state };
     }
 
-    // API publique
+    // Public API
     return {
         update,
         subscribe,

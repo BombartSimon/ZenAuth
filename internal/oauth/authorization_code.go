@@ -33,7 +33,7 @@ func (f *AuthorizationCodeFlow) HandleTokenRequest(w http.ResponseWriter, r *htt
 		return
 	}
 
-	// Récupérer le code dans la base
+	// Retrieve the code from the database
 	authCode, err := repositories.GetAuthCode(code)
 	if err != nil || time.Now().After(authCode.ExpiresAt) {
 		http.Error(w, "invalid_grant", http.StatusBadRequest)
@@ -51,33 +51,33 @@ func (f *AuthorizationCodeFlow) HandleTokenRequest(w http.ResponseWriter, r *htt
 		return
 	}
 
-	// Vérifier redirect_uri
+	// Verify redirect_uri
 	if authCode.RedirectURI != redirectURI {
 		http.Error(w, "invalid_grant", http.StatusBadRequest)
 		return
 	}
 
-	// Vérifier PKCE
+	// Verify PKCE
 	if err := verifyPKCE(authCode.CodeChallenge, authCode.CodeChallengeMethod, codeVerifier); err != nil {
 		http.Error(w, "invalid_grant (pkce)", http.StatusBadRequest)
 		return
 	}
 
-	// Supprimer le code après usage (sécurité)
+	// Delete the code after use (security)
 	_ = repositories.DeleteAuthCode(code)
 
-	// Générer access_token
+	// Generate access_token
 	accessToken, err := GenerateAccessToken(authCode.UserID, authCode.Scope)
 	if err != nil {
 		http.Error(w, "server_error", http.StatusInternalServerError)
 		return
 	}
 
-	// Générer refresh_token
+	// Generate refresh_token
 	refreshToken := generateRandomToken()
 	_ = repositories.StoreRefreshToken(refreshToken, authCode.ClientID, &authCode.UserID)
 
-	// Réponse
+	// Response
 	token := map[string]interface{}{
 		"access_token":  accessToken,
 		"token_type":    "bearer",

@@ -1,11 +1,11 @@
 /**
- * Module de gestion de l'interface utilisateur
- * Centralise les opérations de manipulation du DOM et la gestion des modales
+ * User interface management module
+ * Centralizes DOM manipulation operations and modal management
  */
 import store from '../state/store.js';
 
 /**
- * Initialise la gestion des thèmes (clair/sombre)
+ * Initializes theme management (light/dark)
  */
 export function initThemeToggle() {
     const themeToggle = document.getElementById('theme-toggle');
@@ -20,13 +20,13 @@ export function initThemeToggle() {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
 
-        // Mettre à jour l'état
+        // Update state
         store.update('ui', { theme });
     });
 }
 
 /**
- * Initialise la navigation entre les sections
+ * Initializes navigation between sections
  */
 export function initNavigation() {
     const menuLinks = document.querySelectorAll('.menu-link');
@@ -51,16 +51,16 @@ export function initNavigation() {
                 }
             });
 
-            // Mettre à jour l'état
+            // Update state
             store.update('ui', { activeSection: targetSection });
         });
     });
 }
 
 /**
- * Gère l'affichage d'une modale générique
- * @param {HTMLElement} modal - Élément DOM de la modale
- * @param {boolean} visible - true pour afficher, false pour masquer
+ * Manages the display of a generic modal
+ * @param {HTMLElement} modal - Modal DOM element
+ * @param {boolean} visible - true to show, false to hide
  */
 export function toggleModal(modal, visible) {
     if (modal) {
@@ -69,7 +69,7 @@ export function toggleModal(modal, visible) {
 }
 
 /**
- * Configure les événements de fermeture pour les modales au clic extérieur
+ * Configures close events for modals on outside click
  */
 export function setupModalOutsideClicks() {
     const modals = [
@@ -84,7 +84,7 @@ export function setupModalOutsideClicks() {
             if (event.target === modal) {
                 toggleModal(modal, false);
 
-                // Mettre à jour le state UI en conséquence
+                // Update UI state accordingly
                 if (modal.id === 'user-modal') {
                     store.update('ui', {
                         modals: {
@@ -120,16 +120,16 @@ export function setupModalOutsideClicks() {
 }
 
 /**
- * Affiche une modale de confirmation de suppression
- * @param {string} id - Identifiant de l'élément à supprimer
- * @param {string} type - Type d'élément ('user', 'client', 'provider')
- * @param {string} name - Nom de l'élément
+ * Displays a delete confirmation modal
+ * @param {string} id - ID of the item to delete
+ * @param {string} type - Type of item ('user', 'client', 'provider')
+ * @param {string} name - Name of the item
  */
 export function showDeleteConfirmation(id, type, name) {
     const deleteModal = document.getElementById('delete-modal');
     const deleteConfirmationMessage = document.getElementById('delete-confirmation-message');
 
-    deleteConfirmationMessage.textContent = `Êtes-vous sûr de vouloir supprimer ${type} "${name}"?`;
+    deleteConfirmationMessage.textContent = `Are you sure you want to delete ${type} "${name}"?`;
     toggleModal(deleteModal, true);
 
     store.update('ui', {
@@ -141,17 +141,17 @@ export function showDeleteConfirmation(id, type, name) {
 }
 
 /**
- * Rendu d'une liste d'utilisateurs dans le DOM
- * @param {Array} users - Liste des utilisateurs à afficher
- * @param {HTMLElement} container - Élément DOM conteneur
+ * Renders a list of users in the DOM
+ * @param {Array} users - List of users to display
+ * @param {HTMLElement} container - Container DOM element
  */
 export function renderUsersList(users, container) {
     if (!container) return;
 
     const { source } = store.getState('users');
 
-    // Créer un bouton de bascule en haut de la table
-    const sourceText = source === "external" ? "Voir utilisateurs locaux" : "Voir utilisateurs externes";
+    // Create a toggle button at the top of the table
+    const sourceText = source === "external" ? "View local users" : "View external users";
 
     let html = `
     <tr>
@@ -160,16 +160,16 @@ export function renderUsersList(users, container) {
                 ${sourceText}
             </button>
             <div style="margin-top: 10px;">
-                <small>Source actuelle: <strong>${source === "external" ? "Base de données externe" : "ZenAuth local"}</strong></small>
+                <small>Current source: <strong>${source === "external" ? "External database" : "ZenAuth local"}</strong></small>
             </div>
         </td>
     </tr>`;
 
-    // Ajouter les utilisateurs
+    // Add users
     users.forEach(user => {
-        // Déterminer si nous devons afficher les actions d'édition/suppression
+        // Determine whether to display edit/delete actions
         const actionsCell = source === "external"
-            ? `<td><span class="badge">Externe</span></td>`
+            ? `<td><span class="badge">External</span></td>`
             : `<td>
                 <button class="action-btn edit" data-id="${user.id}" data-username="${user.username}">
                     <i class="fas fa-edit"></i> Edit
@@ -192,9 +192,9 @@ export function renderUsersList(users, container) {
 }
 
 /**
- * Rendu d'une liste de clients OAuth dans le DOM
- * @param {Array} clients - Liste des clients à afficher  
- * @param {HTMLElement} container - Élément DOM conteneur
+ * Renders a list of OAuth clients in the DOM
+ * @param {Array} clients - List of clients to display
+ * @param {HTMLElement} container - Container DOM element
  */
 export function renderClientsList(clients, container) {
     if (!container) return;
@@ -225,9 +225,9 @@ export function renderClientsList(clients, container) {
 }
 
 /**
- * Rendu d'une liste de fournisseurs d'authentification dans le DOM
- * @param {Array} providers - Liste des fournisseurs à afficher
- * @param {HTMLElement} container - Élément DOM conteneur
+ * Renders a list of authentication providers in the DOM
+ * @param {Array} providers - List of providers to display
+ * @param {HTMLElement} container - Container DOM element
  */
 export function renderProvidersList(providers, container) {
     if (!container) return;
@@ -265,9 +265,9 @@ export function renderProvidersList(providers, container) {
 }
 
 /**
- * Rendu de la liste des utilisateurs bloqués
- * @param {Object} groupedData - Données regroupées des utilisateurs bloqués
- * @param {HTMLElement} container - Élément DOM conteneur
+ * Renders the list of blocked users
+ * @param {Object} groupedData - Grouped data of blocked users
+ * @param {HTMLElement} container - Container DOM element
  */
 export function renderBlockedUsersList(groupedData, container) {
     if (!container) return;
@@ -278,24 +278,24 @@ export function renderBlockedUsersList(groupedData, container) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td colspan="4" class="empty-state">
-                Aucun utilisateur ou adresse IP bloqué
+                No blocked users or IP addresses
             </td>
         `;
         container.appendChild(row);
         return;
     }
 
-    // Afficher les données groupées
+    // Display grouped data
     Object.values(groupedData).forEach(entry => {
         const row = document.createElement('tr');
 
-        // Affichage différent selon le type
+        // Different display based on type
         if (entry.type === "user") {
             row.innerHTML = `
                 <td>
                     <strong>${entry.identifier}</strong>
                     ${entry.associatedIPs && entry.associatedIPs.length > 0 ?
-                    `<div class="associated-data">IPs associées: ${entry.associatedIPs.join(", ")}</div>` :
+                    `<div class="associated-data">Associated IPs: ${entry.associatedIPs.join(", ")}</div>` :
                     ''}
                 </td>
                 <td><span class="badge user">user</span></td>
@@ -304,7 +304,7 @@ export function renderBlockedUsersList(groupedData, container) {
                     <button class="action-btn unblock" 
                             data-identifier="${entry.identifier}" 
                             data-type="user">
-                        <i class="fas fa-unlock"></i> Débloquer Utilisateur & IPs
+                        <i class="fas fa-unlock"></i> Unblock User & IPs
                     </button>
                 </td>
             `;
@@ -313,7 +313,7 @@ export function renderBlockedUsersList(groupedData, container) {
                 <td>
                     <strong>${entry.identifier}</strong>
                     ${entry.associatedUsers && entry.associatedUsers.length > 0 ?
-                    `<div class="associated-data">Utilisateurs associés: ${entry.associatedUsers.join(", ")}</div>` :
+                    `<div class="associated-data">Associated Users: ${entry.associatedUsers.join(", ")}</div>` :
                     ''}
                 </td>
                 <td><span class="badge ip">ip</span></td>
@@ -322,7 +322,7 @@ export function renderBlockedUsersList(groupedData, container) {
                     <button class="action-btn unblock" 
                             data-identifier="${entry.identifier}" 
                             data-type="ip">
-                        <i class="fas fa-unlock"></i> Débloquer IP & Utilisateurs
+                        <i class="fas fa-unlock"></i> Unblock IP & Users
                     </button>
                 </td>
             `;

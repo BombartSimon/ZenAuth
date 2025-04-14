@@ -27,32 +27,32 @@ func main() {
 	}
 	log.Println("✅ Connected to PostgreSQL")
 
-	// Initialiser le provider d'utilisateurs
+	// Initialize the user provider
 	if err := uProviders.InitUserProvider(); err != nil {
 		log.Fatalf("❌ Failed to initialize user provider: %v", err)
 	}
 	log.Println("✅ User provider initialized")
 
-	// Initialiser le gestionnaire de rôles
+	// Initialize the role manager
 	if err := rProviders.InitRoleManager(); err != nil {
 		log.Fatalf("❌ Failed to initialize role manager: %v", err)
 	}
 	log.Println("✅ Role manager initialized")
 
-	// Initialiser le gestionnaire de sessions
+	// Initialize the session manager
 	if err := sProviders.InitSessions(); err != nil {
 		log.Fatalf("❌ Failed to initialize session manager: %v", err)
 	}
 	log.Println("✅ Session manager initialized")
 
-	// Configuration des flux OAuth
+	// OAuth flow configuration
 	flows := []oauth.OAuthFlow{
 		&oauth.ClientCredentialsFlow{},
 		&oauth.RefreshTokenFlow{},
 		&oauth.AuthorizationCodeFlow{},
 	}
 
-	// Création et configuration du routeur
+	// Create and configure the router
 	r := router.New(flows)
 
 	log.Println("🚀 OAuth server running on http://localhost:8080")

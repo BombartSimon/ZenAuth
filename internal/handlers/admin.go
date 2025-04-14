@@ -210,7 +210,7 @@ func listBlockedUsers(w http.ResponseWriter, r *http.Request) {
 
 	result := make([]BlockedUser, 0)
 
-	// Convertir les identifiants en objets structurés
+	// Convert identifiers into structured objects
 	for _, id := range blockedUsers {
 		var userType string
 		var identifier string
@@ -223,7 +223,7 @@ func listBlockedUsers(w http.ResponseWriter, r *http.Request) {
 			identifier = id
 		}
 
-		// Récupérer le temps restant de blocage
+		// Get remaining block time
 		remaining, _ := sProviders.GetRemainingBlockTime(id)
 
 		result = append(result, BlockedUser{
@@ -307,7 +307,7 @@ func listUsers(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	useProvider := false
 
-	// check if provider have external
+	// Check if the provider is external
 	if query.Get("provider") == "external" {
 		useProvider = true
 	}
@@ -316,11 +316,10 @@ func listUsers(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if useProvider {
-		// Utiliser le provider externe
+		// Use external provider
 		users, err = uProviders.CurrentUserProvider.GetAllUsers()
 	} else {
-		// Utiliser la base de données locale par défaut
-
+		// Use local database by default
 		users, err = repositories.GetAllUsers()
 	}
 

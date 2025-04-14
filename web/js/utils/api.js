@@ -1,14 +1,14 @@
 /**
- * Module de gestion des appels API
- * Centralise toutes les requêtes HTTP pour assurer une cohérence
+ * API call management module
+ * Centralizes all HTTP requests to ensure consistency
  */
 
 /**
- * Effectue une requête vers l'API avec gestion d'erreurs standardisée et mécanisme de retentatives
- * @param {string} url - URL de la ressource
- * @param {Object} options - Options de la requête fetch
- * @param {number} retryCount - Nombre de tentatives restantes (utilisé en interne)
- * @returns {Promise} - Promesse contenant les données ou rejetant une erreur
+ * Makes a request to the API with standardized error handling and retry mechanism
+ * @param {string} url - Resource URL
+ * @param {Object} options - Fetch request options
+ * @param {number} retryCount - Remaining attempts (used internally)
+ * @returns {Promise} - Promise containing data or rejecting an error
  */
 export async function apiRequest(url, options = {}, retryCount = 3) {
     try {
@@ -17,7 +17,7 @@ export async function apiRequest(url, options = {}, retryCount = 3) {
         const response = await fetch(url, options);
 
         if (!response.ok) {
-            // Tenter de récupérer un message d'erreur si disponible
+            // Try to retrieve an error message if available
             let errorMessage;
             try {
                 const errorData = await response.text();
@@ -29,7 +29,7 @@ export async function apiRequest(url, options = {}, retryCount = 3) {
             throw new Error(errorMessage);
         }
 
-        // Vérifier si la réponse contient du JSON
+        // Check if the response contains JSON
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
             const data = await response.json();
@@ -43,10 +43,10 @@ export async function apiRequest(url, options = {}, retryCount = 3) {
     } catch (error) {
         console.error(`❌ API request failed: ${url}`, error);
 
-        // Tentative de nouvelle requête si nous avons encore des essais disponibles
+        // Retry attempt if we still have available attempts
         if (retryCount > 0) {
             console.log(`🔄 Retrying... (${retryCount} attempts left)`);
-            // Attendre un peu avant de réessayer (délai exponentiel)
+            // Wait a bit before retrying (exponential delay)
             const delay = (3 - retryCount + 1) * 1000;
             await new Promise(resolve => setTimeout(resolve, delay));
             return apiRequest(url, options, retryCount - 1);
@@ -57,10 +57,10 @@ export async function apiRequest(url, options = {}, retryCount = 3) {
 }
 
 /**
- * Crée un objet d'options pour les requêtes avec un corps JSON
- * @param {string} method - Méthode HTTP (GET, POST, PUT, DELETE)
- * @param {Object} data - Données à envoyer au format JSON
- * @returns {Object} - Options pour fetch
+ * Creates an options object for requests with a JSON body
+ * @param {string} method - HTTP method (GET, POST, PUT, DELETE)
+ * @param {Object} data - Data to send in JSON format
+ * @returns {Object} - Options for fetch
  */
 export function createJsonRequestOptions(method, data = null) {
     const options = {
@@ -78,7 +78,7 @@ export function createJsonRequestOptions(method, data = null) {
 }
 
 /**
- * Collection des endpoints de l'API
+ * Collection of API endpoints
  */
 export const API_ENDPOINTS = {
     USERS: '/admin/users',
@@ -90,14 +90,14 @@ export const API_ENDPOINTS = {
 };
 
 /**
- * Affiche une notification d'erreur standardisée
- * @param {Error} error - L'erreur à afficher
- * @param {string} fallbackMessage - Message à afficher si l'erreur n'a pas de message
+ * Displays a standardized error notification
+ * @param {Error} error - The error to display
+ * @param {string} fallbackMessage - Message to display if the error has no message
  */
-export function handleError(error, fallbackMessage = 'Une erreur est survenue') {
+export function handleError(error, fallbackMessage = 'An error occurred') {
     const message = error.message || fallbackMessage;
 
-    // Créer une notification stylisée au lieu d'une alerte
+    // Create a stylized notification instead of an alert
     const notification = document.createElement('div');
     notification.className = 'error-notification';
     notification.innerHTML = `
@@ -108,12 +108,12 @@ export function handleError(error, fallbackMessage = 'Une erreur est survenue') 
 
     document.body.appendChild(notification);
 
-    // Animation d'entrée
+    // Entry animation
     setTimeout(() => {
         notification.classList.add('show');
     }, 10);
 
-    // Ajouter un gestionnaire pour fermer la notification
+    // Add handler to close the notification
     notification.querySelector('.error-close').addEventListener('click', () => {
         notification.classList.remove('show');
         setTimeout(() => {
@@ -121,7 +121,7 @@ export function handleError(error, fallbackMessage = 'Une erreur est survenue') 
         }, 300);
     });
 
-    // Auto-fermeture après 5 secondes
+    // Auto-close after 5 seconds
     setTimeout(() => {
         if (document.body.contains(notification)) {
             notification.classList.remove('show');

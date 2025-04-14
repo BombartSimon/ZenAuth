@@ -1,9 +1,9 @@
 /**
- * Utils pour gérer les effets UI de ZenAuth
+ * Utils for managing ZenAuth UI effects
  */
 
 /**
- * Ajoute un effet de ripple sur les boutons
+ * Adds a ripple effect on buttons
  */
 function addRippleEffect() {
     const buttons = document.querySelectorAll('.btn');
@@ -31,7 +31,7 @@ function addRippleEffect() {
 }
 
 /**
- * Anime l'apparition des cartes
+ * Animates the appearance of cards
  */
 function animateCards() {
     const cards = document.querySelectorAll('.card');
@@ -42,13 +42,13 @@ function animateCards() {
 }
 
 /**
- * Affiche une notification
- * @param {string} message - Message à afficher
- * @param {string} type - Type de notification ('success', 'error', 'info')
- * @param {number} duration - Durée d'affichage en ms
+ * Displays a notification
+ * @param {string} message - Message to display
+ * @param {string} type - Notification type ('success', 'error', 'info')
+ * @param {number} duration - Display duration in ms
  */
 function showNotification(message, type = 'info', duration = 5000) {
-    // Vérifier si le wrapper existe, sinon le créer
+    // Check if wrapper exists, otherwise create it
     let wrapper = document.querySelector('.notification-wrapper');
     if (!wrapper) {
         wrapper = document.createElement('div');
@@ -56,11 +56,11 @@ function showNotification(message, type = 'info', duration = 5000) {
         document.body.appendChild(wrapper);
     }
 
-    // Créer la notification
+    // Create notification
     const notification = document.createElement('div');
     notification.classList.add('notification', type);
 
-    // Ajouter l'icône en fonction du type
+    // Add icon based on type
     let icon = 'info-circle';
     if (type === 'success') icon = 'check-circle';
     if (type === 'error') icon = 'exclamation-circle';
@@ -73,16 +73,16 @@ function showNotification(message, type = 'info', duration = 5000) {
         <button class="notification-close">&times;</button>
     `;
 
-    // Ajouter au wrapper
+    // Add to wrapper
     wrapper.appendChild(notification);
 
-    // Gérer la fermeture
+    // Handle closing
     const closeBtn = notification.querySelector('.notification-close');
     closeBtn.addEventListener('click', () => {
         closeNotification(notification);
     });
 
-    // Auto-fermeture après durée spécifiée
+    // Auto-close after specified duration
     if (duration > 0) {
         setTimeout(() => {
             closeNotification(notification);
@@ -93,8 +93,8 @@ function showNotification(message, type = 'info', duration = 5000) {
 }
 
 /**
- * Ferme une notification avec animation
- * @param {HTMLElement} notification - Élément de notification
+ * Closes a notification with animation
+ * @param {HTMLElement} notification - Notification element
  */
 function closeNotification(notification) {
     notification.classList.add('removing');
@@ -104,13 +104,13 @@ function closeNotification(notification) {
 }
 
 /**
- * Initialise tous les effets UI
+ * Initializes all UI effects
  */
 function initUIEffects() {
     addRippleEffect();
     animateCards();
 
-    // Observer pour animer les nouvelles cartes ajoutées dynamiquement
+    // Observer to animate new cards added dynamically
     const observer = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
             if (mutation.addedNodes.length) {
@@ -134,7 +134,7 @@ function initUIEffects() {
     observer.observe(document.body, { childList: true, subtree: true });
 }
 
-// Exporter les fonctions
+// Export functions
 export {
     initUIEffects,
     showNotification,

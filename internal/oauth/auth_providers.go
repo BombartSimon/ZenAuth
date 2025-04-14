@@ -2,7 +2,6 @@ package oauth
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -74,7 +73,7 @@ func (p *OAuth2Provider) ExchangeCodeForToken(code, redirectURI string) (string,
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	// Spécifique à GitHub: accepter JSON comme réponse
+	// GitHub-specific: accept JSON as response
 	if p.Type == GitHub {
 		req.Header.Add("Accept", "application/json")
 	}
@@ -93,7 +92,7 @@ func (p *OAuth2Provider) ExchangeCodeForToken(code, redirectURI string) (string,
 
 	var result map[string]interface{}
 
-	// GitHub peut renvoyer des réponses au format différent
+	// GitHub may return responses in different formats
 	if p.Type == GitHub && resp.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -115,7 +114,7 @@ func (p *OAuth2Provider) ExchangeCodeForToken(code, redirectURI string) (string,
 
 	token, ok := result["access_token"].(string)
 	if !ok {
-		return "", errors.New("access_token not found in response")
+		return "", fmt.Errorf("no access token in response")
 	}
 
 	return token, nil
@@ -130,7 +129,7 @@ func (p *OAuth2Provider) GetUserInfo(token string) (map[string]interface{}, erro
 
 	req.Header.Add("Authorization", "Bearer "+token)
 
-	// Spécifique à GitHub
+	// GitHub-specific
 	if p.Type == GitHub {
 		req.Header.Add("Accept", "application/vnd.github.v3+json")
 	}

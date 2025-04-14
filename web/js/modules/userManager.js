@@ -1,26 +1,26 @@
 /**
- * Module de gestion des utilisateurs
- * Gère toutes les opérations liées aux utilisateurs (chargement, ajout, édition, suppression)
+ * User management module
+ * Handles all user-related operations (loading, adding, editing, deletion)
  */
 import { apiRequest, createJsonRequestOptions, API_ENDPOINTS, handleError } from '../utils/api.js';
 import store from '../state/store.js';
 
-// Temps minimum entre deux requêtes de chargement (en ms)
+// Minimum time between two load requests (in ms)
 const MIN_REFRESH_INTERVAL = 1000;
 let lastLoadTime = 0;
 
 /**
- * Charge la liste des utilisateurs depuis l'API
- * Prend en compte la source (local ou externe)
- * @param {boolean} force - Force le rechargement même si appelé récemment
- * @returns {Promise<Array>} - Liste des utilisateurs
+ * Loads the list of users from the API
+ * Takes into account the source (local or external)
+ * @param {boolean} force - Force reload even if called recently
+ * @returns {Promise<Array>} - List of users
  */
 export async function loadUsers(force = false) {
     try {
-        // Éviter trop de requêtes rapprochées pour éviter de surcharger l'API
+        // Avoid too many requests in a short time to prevent API overload
         const now = Date.now();
         if (!force && now - lastLoadTime < MIN_REFRESH_INTERVAL) {
-            console.log('⏱️ Requête trop rapprochée, utilisation du cache');
+            console.log('⏱️ Request too close, using cache');
             return store.getState('users').list;
         }
 
@@ -28,136 +28,136 @@ export async function loadUsers(force = false) {
         const { source } = store.getState('users');
         const url = source === "external" ? API_ENDPOINTS.EXTERNAL_USERS : API_ENDPOINTS.USERS;
 
-        // Mettre à jour l'état pour indiquer le chargement
+        // Update state to indicate loading
         store.update('users', { loading: true, error: null });
 
         const users = await apiRequest(url);
 
-        // Vérifier que les données sont bien un array
+        // Verify that data is an array
         if (!Array.isArray(users)) {
-            throw new Error('Format de données utilisateurs invalide');
+            throw new Error('Invalid user data format');
         }
 
-        // Mettre à jour l'état avec les données
+        // Update state with data
         store.update('users', { list: users, loading: false, lastUpdated: now });
 
         return users;
     } catch (error) {
         store.update('users', {
             loading: false,
-            error: error.message || 'Erreur lors du chargement des utilisateurs'
+            error: error.message || 'Error loading users'
         });
 
-        handleError(error, 'Impossible de charger la liste des utilisateurs');
+        handleError(error, 'Unable to load user list');
         return [];
     }
 }
 
 /**
- * Bascule entre les sources d'utilisateurs (local/externe)
+ * Toggle between user sources (local/external)
  */
 export function toggleUserSource() {
     const currentState = store.getState('users');
     const newSource = currentState.source === "external" ? "local" : "external";
     store.update('users', { source: newSource, loading: true });
-    loadUsers(true); // Force le rechargement
+    loadUsers(true); // Force reload
 }
 
 /**
- * Crée un nouvel utilisateur
- * @param {Object} userData - Données de l'utilisateur à créer
- * @returns {Promise<Object>} - L'utilisateur créé
+ * Creates a new user
+ * @param {Object} userData - User data to create
+ * @returns {Promise<Object>} - The created user
  */
 export async function createUser(userData) {
     try {
         const options = createJsonRequestOptions('POST', userData);
         const result = await apiRequest(API_ENDPOINTS.USERS, options);
 
-        // Recharger la liste pour intégrer le nouvel utilisateur
+        // Reload the list to include the new user
         await loadUsers(true);
 
-        // Afficher un message de succès
-        showSuccessMessage('Utilisateur créé avec succès');
+        // Display success message
+        showSuccessMessage('User created successfully');
 
         return result;
     } catch (error) {
-        handleError(error, 'Impossible de créer l\'utilisateur');
+        handleError(error, 'Unable to create user');
         throw error;
     }
 }
 
 /**
- * Met à jour un utilisateur existant
- * @param {string} userId - ID de l'utilisateur
- * @param {Object} userData - Données à mettre à jour
- * @returns {Promise<Object>} - L'utilisateur mis à jour
+ * Updates an existing user
+ * @param {string} userId - User ID
+ * @param {Object} userData - Data to update
+ * @returns {Promise<Object>} - The updated user
  */
 export async function updateUser(userId, userData) {
     try {
         const options = createJsonRequestOptions('PUT', userData);
         const result = await apiRequest(`${API_ENDPOINTS.USERS}/${userId}`, options);
 
-        // Recharger la liste pour mettre à jour l'UI
+        // Reload the list to update UI
         await loadUsers(true);
 
-        // Afficher un message de succès
-        showSuccessMessage('Utilisateur mis à jour avec succès');
+        // Display success message
+        showSuccessMessage('User updated successfully');
 
         return result;
     } catch (error) {
-        handleError(error, 'Impossible de mettre à jour l\'utilisateur');
+        handleError(error, 'Unable to update user');
         throw error;
     }
 }
 
 /**
- * Supprime un utilisateur
- * @param {string} userId - ID de l'utilisateur à supprimer
+ * Deletes a user
+ * @param {string} userId - ID of the user to delete
  * @returns {Promise<void>}
  */
 export async function deleteUser(userId) {
     try {
         await apiRequest(`${API_ENDPOINTS.USERS}/${userId}`, { method: 'DELETE' });
 
-        // Recharger la liste pour refléter la suppression
+        // Reload the list to reflect deletion
         await loadUsers(true);
 
-        // Afficher un message de succès
-        showSuccessMessage('Utilisateur supprimé avec succès');
+        // Display success message
+        showSuccessMessage('User deleted successfully');
     } catch (error) {
-        handleError(error, 'Impossible de supprimer l\'utilisateur');
+        handleError(error, 'Unable to delete user');
         throw error;
     }
 }
 
 /**
- * Charge la liste des utilisateurs bloqués
- * @param {boolean} force - Force le rechargement même si appelé récemment
- * @returns {Promise<Array>} - Liste des utilisateurs bloqués
+ * Loads the list of blocked users
+ * @param {boolean} force - Force reload even if called recently
+ * @returns {Promise<Array>} - List of blocked users
  */
 export async function loadBlockedUsers(force = false) {
     try {
-        // Éviter trop de requêtes rapprochées
+        // Avoid too many close requests
         const now = Date.now();
         if (!force && now - lastLoadTime < MIN_REFRESH_INTERVAL) {
             return store.getState('blockedUsers').list;
         }
 
-        // Mettre à jour l'état pour indiquer le chargement
+        // Update state to indicate loading
         store.update('blockedUsers', { loading: true, error: null });
 
         const blockedUsers = await apiRequest(API_ENDPOINTS.BLOCKED_USERS);
 
-        // Vérifier que les données sont bien un array
+        // Verify that data is an array
         if (!Array.isArray(blockedUsers)) {
-            throw new Error('Format de données d\'utilisateurs bloqués invalide');
+            throw new Error('Invalid blocked users data format');
         }
 
-        // Organiser les données pour regrouper les utilisateurs et leurs IPs
+        // Organize data to group users and their IPs
         const groupedData = {};
 
         blockedUsers.forEach(user => {
-            // Si c'est un utilisateur, on le traite séparément
+            // If it's a user, we process it separately
             if (user.type === "user") {
                 const key = user.identifier;
                 if (!groupedData[key]) {
@@ -169,18 +169,18 @@ export async function loadBlockedUsers(force = false) {
                     };
                 }
             }
-            // Si c'est une IP, on cherche si elle est associée à un utilisateur
+            // If it's an IP, check if it's associated with a user
             else if (user.type === "ip") {
                 let found = false;
 
-                // Rechercher dans les associations existantes
+                // Search in existing associations
                 Object.values(groupedData).forEach(entry => {
                     if (entry.associatedIPs && entry.associatedIPs.includes(user.identifier)) {
                         found = true;
                     }
                 });
 
-                // Si cette IP n'est pas déjà associée, créer une nouvelle entrée
+                // If this IP is not already associated, create a new entry
                 if (!found) {
                     groupedData[`ip_${user.identifier}`] = {
                         identifier: user.identifier,
@@ -203,41 +203,41 @@ export async function loadBlockedUsers(force = false) {
     } catch (error) {
         store.update('blockedUsers', {
             loading: false,
-            error: error.message || 'Erreur lors du chargement des utilisateurs bloqués'
+            error: error.message || 'Error loading blocked users'
         });
 
-        handleError(error, 'Impossible de charger les utilisateurs bloqués');
+        handleError(error, 'Unable to load blocked users');
         return [];
     }
 }
 
 /**
- * Débloque un utilisateur ou une adresse IP
- * @param {string} identifier - Identifiant à débloquer
- * @param {string} type - Type d'identifiant ('user' ou 'ip')
- * @returns {Promise<Object>} - Résultat de l'opération
+ * Unblocks a user or IP address
+ * @param {string} identifier - Identifier to unblock
+ * @param {string} type - Type of identifier ('user' or 'ip')
+ * @returns {Promise<Object>} - Result of the operation
  */
 export async function unblockUser(identifier, type) {
     try {
         const options = createJsonRequestOptions('POST', { identifier, type });
         const result = await apiRequest(API_ENDPOINTS.UNBLOCK_USER, options);
 
-        // Recharger la liste pour refléter le déblocage
+        // Reload the list to reflect unblocking
         await loadBlockedUsers(true);
 
-        // Afficher un message de succès
-        showSuccessMessage(`${type === 'user' ? 'Utilisateur' : 'Adresse IP'} débloqué avec succès`);
+        // Display success message
+        showSuccessMessage(`${type === 'user' ? 'User' : 'IP Address'} unblocked successfully`);
 
         return result;
     } catch (error) {
-        handleError(error, 'Impossible de débloquer cet identifiant');
+        handleError(error, 'Unable to unblock this identifier');
         throw error;
     }
 }
 
 /**
- * Affiche une notification de succès
- * @param {string} message - Message à afficher
+ * Displays a success notification
+ * @param {string} message - Message to display
  */
 function showSuccessMessage(message) {
     const notification = document.createElement('div');
@@ -250,12 +250,12 @@ function showSuccessMessage(message) {
 
     document.body.appendChild(notification);
 
-    // Animation d'entrée
+    // Entry animation
     setTimeout(() => {
         notification.classList.add('show');
     }, 10);
 
-    // Ajouter un gestionnaire pour fermer la notification
+    // Add handler to close notification
     notification.querySelector('.success-close').addEventListener('click', () => {
         notification.classList.remove('show');
         setTimeout(() => {
@@ -263,7 +263,7 @@ function showSuccessMessage(message) {
         }, 300);
     });
 
-    // Auto-fermeture après 3 secondes
+    // Auto-close after 3 seconds
     setTimeout(() => {
         if (document.body.contains(notification)) {
             notification.classList.remove('show');

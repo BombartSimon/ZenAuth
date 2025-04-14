@@ -18,9 +18,9 @@
         const clientId = "demo-client";
         const redirectUri = "http://localhost:3000";
         const authServer = "http://localhost:8080";
-        const scope = "read write";  // Ajout des scopes ici
+        const scope = "read write";  // Scopes added here
 
-        // Utilitaires PKCE
+        // PKCE utilities
         async function generateCodeVerifier() {
             const array = new Uint8Array(32);
             crypto.getRandomValues(array);
@@ -28,29 +28,29 @@
                 .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
         }
 
-        // Fonction de hachage SHA-256 avec vérification de disponibilité
+        // SHA-256 hash function with availability check
         async function sha256(text) {
             try {
-                // Vérifier si crypto.subtle est disponible (contexte sécurisé)
+                // Check if crypto.subtle is available (secure context)
                 if (window.crypto && window.crypto.subtle) {
                     const encoder = new TextEncoder();
                     const data = encoder.encode(text);
                     const hash = await window.crypto.subtle.digest("SHA-256", data);
                     return new Uint8Array(hash);
                 } else {
-                    // Utilisation d'une alternative pour les contextes non-HTTPS
-                    console.warn("Web Crypto API non disponible. Utilisation d'une méthode alternative.");
+                    // Use an alternative for non-HTTPS contexts
+                    console.warn("Web Crypto API not available. Using alternative method.");
                     return simpleHash(text);
                 }
             } catch (error) {
-                console.error("Erreur lors du hachage:", error);
-                document.getElementById("error").textContent = "Erreur de hachage: " + error.message;
+                console.error("Error during hashing:", error);
+                document.getElementById("error").textContent = "Hash error: " + error.message;
                 throw error;
             }
         }
 
-        // Méthode alternative de hachage simple pour les contextes non-HTTPS
-        // Note: Ceci n'est pas cryptographiquement sécurisé, uniquement pour le développement
+        // Simple alternative hashing method for non-HTTPS contexts
+        // Note: This is not cryptographically secure, only for development
         function simpleHash(str) {
             let hash = 0;
             for (let i = 0; i < str.length; i++) {
@@ -58,7 +58,7 @@
                 hash = ((hash << 5) - hash) + char;
                 hash = hash & hash; // Convert to 32bit integer
             }
-            // Créer un tableau de 32 octets à partir du hash
+            // Create a 32-byte array from the hash
             const result = new Uint8Array(32);
             for (let i = 0; i < 32; i++) {
                 result[i] = (hash >> (i % 8)) & 0xFF;
@@ -72,30 +72,30 @@
                 return btoa(String.fromCharCode.apply(null, [...hashed]))
                     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
             } catch (error) {
-                console.error("Erreur de génération du code challenge:", error);
-                document.getElementById("error").textContent = "Erreur: " + error.message;
+                console.error("Error generating code challenge:", error);
+                document.getElementById("error").textContent = "Error: " + error.message;
                 throw error;
             }
         }
 
-        // Démarre l'auth
+        // Start authentication
         async function startAuth() {
             try {
                 const codeVerifier = await generateCodeVerifier();
                 const codeChallenge = await generateCodeChallenge(codeVerifier);
                 sessionStorage.setItem("code_verifier", codeVerifier);
 
-                // Inclure les scopes dans l'URL d'autorisation
+                // Include scopes in the authorization URL
                 const authUrl = `${authServer}/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge=${codeChallenge}&code_challenge_method=S256&scope=${encodeURIComponent(scope)}`;
 
-                window.location.href = authUrl;  // Rediriger l'utilisateur
+                window.location.href = authUrl;  // Redirect the user
             } catch (error) {
-                console.error("Erreur d'authentification:", error);
-                document.getElementById("error").textContent = "Erreur d'authentification: " + error.message;
+                console.error("Authentication error:", error);
+                document.getElementById("error").textContent = "Authentication error: " + error.message;
             }
         }
 
-        // Si code dans l'URL → échange token
+        // If code in URL → token exchange
         window.onload = async function () {
             try {
                 const params = new URLSearchParams(window.location.search);
@@ -109,7 +109,7 @@
                     form.append("redirect_uri", redirectUri);
                     form.append("code_verifier", codeVerifier);
 
-                    // Inclure les scopes dans le corps de la requête de token
+                    // Include scopes in the token request body
                     form.append("scope", scope);
 
                     const response = await fetch(`${authServer}/token`, {
@@ -122,8 +122,8 @@
                     document.getElementById("output").textContent = JSON.stringify(json, null, 2);
                 }
             } catch (error) {
-                console.error("Erreur lors de l'échange du token:", error);
-                document.getElementById("error").textContent = "Erreur: " + error.message;
+                console.error("Error during token exchange:", error);
+                document.getElementById("error").textContent = "Error: " + error.message;
             }
         }
     </script>

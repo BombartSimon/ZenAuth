@@ -102,7 +102,7 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 			user, userErr = adapters.CurrentUserProvider.GetUserByUsername(identifier)
 		}
 
-		// Gestion des échecs d'authentification avec rate limiting
+		// Authentication failures handling with rate limiting
 		if userErr != nil || user == nil || !adapters.CurrentUserProvider.VerifyPassword(user.PasswordHash, password) {
 			attempts, err := sessionsAdapters.RecordFailedLoginAttempt(ipAddress)
 			if err != nil {
@@ -133,7 +133,7 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Authentification réussie - réinitialiser le rate limiting
+		// Successful authentication - reset rate limiting
 		if err := sessionsAdapters.ResetLoginAttempts(ipAddress); err != nil {
 			log.Printf("Error resetting rate limit for IP %s: %v", ipAddress, err)
 		}
@@ -169,7 +169,7 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 
 		log.Println("REDIRECT TO:", redirectURI+"?code="+code)
 
-		// Ajouter le state au redirect si présent
+		// Add state to redirect if present
 		redirectURL := redirectURI + "?code=" + code
 		if state != "" {
 			redirectURL += "&state=" + state

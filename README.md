@@ -1,6 +1,6 @@
 # ZenAuth - OAuth 2.0 Authorization Server in Go
 
-ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server implemented in Go. It supports multiple OAuth 2.0 flows and provides a simple, secure way to handle authentication and authorization for your applications.
+ZenAuth is a lightweight yet complete OAuth 2.0 authorization server implemented in Go. It supports multiple OAuth 2.0 flows and provides a simple and secure solution for managing authentication and authorization for your applications.
 
 ![ZenAuth Logo](assets/logo.png)
 
@@ -10,7 +10,7 @@ ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server impl
   - [Features](#features)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
-    - [Setup and Running](#setup-and-running)
+    - [Installation and Execution](#installation-and-execution)
   - [Environment Variables](#environment-variables)
   - [API Endpoints](#api-endpoints)
   - [OAuth Flow Implementation](#oauth-flow-implementation)
@@ -18,19 +18,19 @@ ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server impl
     - [Client Credentials Flow](#client-credentials-flow)
     - [Refresh Token Flow](#refresh-token-flow)
     - [External Authentication Flow](#external-authentication-flow)
-  - [Testing the Flows (via curl)](#testing-the-flows-via-curl)
+  - [Testing Flows (via curl)](#testing-flows-via-curl)
     - [Client Credentials](#client-credentials)
-    - [Authorization Code Flow (with PKCE plain)](#authorization-code-flow-with-pkce-plain)
+    - [Authorization Code (with PKCE plain)](#authorization-code-with-pkce-plain)
     - [Refresh Token](#refresh-token)
   - [Operation Modes](#operation-modes)
     - [Standalone Mode](#standalone-mode)
     - [Hybrid Mode](#hybrid-mode)
-    - [External Database Integration](#external-database-integration)
+    - [Integration with External Database](#integration-with-external-database)
   - [External Authentication Providers](#external-authentication-providers)
     - [Configuration](#configuration)
   - [Development Commands](#development-commands)
   - [License](#license)
-  - [Contributing](#contributing)
+  - [Contribution](#contribution)
 
 ---
 
@@ -79,7 +79,7 @@ ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server impl
 - Docker and Docker Compose (for PostgreSQL)
 - Make (optional, for running commands)
 
-### Setup and Running
+### Installation and Execution
 
 1. **Clone the repository**:
    ```bash
@@ -107,7 +107,7 @@ ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server impl
    make client
    ```
 
-6. Visit [http://localhost:3000](http://localhost:3000) and click "Login with Mini OAuth"
+6. Visit [http://localhost:3000](http://localhost:3000) and click on "Login with Mini OAuth"
    - Use the test credentials:
      - Username: `demo`
      - Password: `demo123`
@@ -116,8 +116,7 @@ ZenAuth is a lightweight, yet fully-featured OAuth 2.0 authorization server impl
       - Google
       - GitHub
   
-7. Access the Admin Console at http://localhost:8080/admin/
-
+7. Access the admin console at http://localhost:8080/admin/
 
 ---
 
@@ -153,16 +152,14 @@ ROLE_MANAGER_GROUP_TABLE=groups
 
 ## API Endpoints
 
-| Method | Path              | Description                                                 |
-| ------ | ----------------- | ----------------------------------------------------------- |
-| GET    | `/authorize`      | Starts the authorization code flow                          |
-| POST   | `/token`          | Exchanges code or client credentials                        |
-| GET    | `/userinfo`       | Returns user info from access token                         |
-| GET    | `/admin/`         | Admin console for managing users, client and auth providers |
-| GET    | `/auth/external	` | Initiates external authentication flow                      |
-| GET    | `/auth/callback`  | Callback URL for external auth providers                    |
-
-                |
+| Method | Path             | Description                                                          |
+| ------ | ---------------- | -------------------------------------------------------------------- |
+| GET    | `/authorize`     | Starts the Authorization Code flow                                   |
+| POST   | `/token`         | Exchanges code or client credentials                                 |
+| GET    | `/userinfo`      | Returns user information from token                                  |
+| GET    | `/admin/`        | Admin console to manage users, clients, and authentication providers |
+| GET    | `/auth/external` | Starts external authentication flow                                  |
+| GET    | `/auth/callback` | Callback URL for external authentication providers                   |
 
 ---
 
@@ -211,14 +208,14 @@ graph TD;
 
 ---
 
-## Testing the Flows (via curl)
+## Testing Flows (via curl)
 
 ### Client Credentials
 ```bash
 curl -X POST http://localhost:8080/token   -u demo-client:demo-secret   -d "grant_type=client_credentials"
 ```
 
-### Authorization Code Flow (with PKCE plain)
+### Authorization Code (with PKCE plain)
 ```bash
 export CODE_VERIFIER=demo123
 export CODE_CHALLENGE=demo123
@@ -241,7 +238,7 @@ curl -X POST http://localhost:8080/token   -d "grant_type=refresh_token"   -d "r
 
 ## Operation Modes
 
-ZenAuth can be used in different modes depending on your requirements.
+ZenAuth can be used in different modes depending on your needs.
 
 ### Standalone Mode
 
@@ -264,12 +261,12 @@ ROLE_MANAGER_TYPE=external
 ROLE_MANAGER_EXTERNAL_CONN=postgres://user:pass@external-db:5432/app_db?sslmode=disable
 ```
 
-### External Database Integration
+### Integration with External Database
 
-Example configuration to use an existing database:
+Example configuration for using an existing database:
 
 ```
-# Connection to external database for users
+# Connection to an external database for users
 USER_PROVIDER_TYPE=sql
 USER_PROVIDER_SQL_CONN=postgres://postgres:password@192.168.1.10:5432/app_db?sslmode=disable
 USER_PROVIDER_SQL_TABLE=users
@@ -278,7 +275,7 @@ USER_PROVIDER_SQL_USER_FIELD=username
 USER_PROVIDER_SQL_PASS_FIELD=password
 USER_PROVIDER_SQL_EMAIL_FIELD=email
 
-# Connection to external database for roles
+# Connection to an external database for roles
 ROLE_MANAGER_TYPE=external
 ROLE_MANAGER_INCLUDE_IN_JWT=true
 ROLE_MANAGER_EXTERNAL_CONN=postgres://postgres:password@192.168.1.10:5432/app_db?sslmode=disable
@@ -291,28 +288,28 @@ ZenAuth supports integration with popular identity providers to enable social lo
 
 - **Microsoft**: Use Microsoft accounts for authentication.
 - **Google**: Authenticate users with their Google accounts.
-- **GitHub**: Allow users to log in using their GitHub accounts.
+- **GitHub**: Allow users to sign in using their GitHub accounts.
 
 ### Configuration
-External authentication providers can be configured through the admin console at /admin/ under the "Auth Providers" section.
+External authentication providers can be configured via the admin console at /admin/ in the "Auth Providers" section.
 
-For each provider, you'll need:
+For each provider, you will need:
 
-- Provider name (display name)
-- Provider type (microsoft, google, github)
+- Provider Name (display name)
+- Provider Type (microsoft, google, github)
 - Client ID (from the provider's developer console)
 - Client Secret (from the provider's developer console)
-- Tenant ID (for Microsoft only, optional)
+- Tenant ID (only for Microsoft, optional)
 
 ---
 
 ## Development Commands
 
-- `make up` - Start PostgreSQL container
-- `make init-db` - Initialize database schema
-- `make seed` - Create test user
-- `make run` - Start ZenAuth server
-- `make client` - Start test client
+- `make up` - Start the PostgreSQL container
+- `make init-db` - Initialize the database schema
+- `make seed` - Create a test user
+- `make run` - Start the ZenAuth server
+- `make client` - Start the test client
 - `make logs` - Show PostgreSQL logs
 - `make down` - Stop all containers
 
@@ -321,5 +318,5 @@ For each provider, you'll need:
 ## License
 MIT License
 
-## Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
+## Contribution
+Contributions are welcome! Feel free to submit a Pull Request.

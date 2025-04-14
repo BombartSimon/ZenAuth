@@ -1,12 +1,12 @@
 /**
- * Module de gestion des fournisseurs d'authentification
- * Gère toutes les opérations liées aux providers externes (Google, Microsoft, GitHub)
+ * Authentication providers management module
+ * Handles all operations related to external providers (Google, Microsoft, GitHub)
  */
 import { apiRequest, createJsonRequestOptions, API_ENDPOINTS, handleError } from '../utils/api.js';
 import store from '../state/store.js';
 
 /**
- * Charge la liste des fournisseurs d'authentification depuis l'API
+ * Loads the list of authentication providers from the API
  */
 export async function loadProviders() {
     try {
@@ -14,71 +14,72 @@ export async function loadProviders() {
         store.update('providers', { list: providers });
         return providers;
     } catch (error) {
-        handleError(error, 'Impossible de charger les fournisseurs d\'authentification');
+        handleError(error, 'Unable to load authentication providers');
         return [];
     }
 }
 
 /**
- * Crée un nouveau fournisseur d'authentification
- * @param {Object} providerData - Données du fournisseur à créer
- * @returns {Promise<Object>} - Le fournisseur créé
+ * Creates a new authentication provider
+ * @param {Object} providerData - Provider data to create
+ * @returns {Promise<Object>} - The created provider
  */
 export async function createProvider(providerData) {
     try {
         const options = createJsonRequestOptions('POST', providerData);
         const result = await apiRequest(API_ENDPOINTS.PROVIDERS, options);
 
-        // Recharger la liste pour intégrer le nouveau fournisseur
+        // Reload the list to integrate the new provider
         await loadProviders();
         return result;
     } catch (error) {
-        handleError(error, 'Impossible de créer le fournisseur d\'authentification');
+        handleError(error, 'Unable to create authentication provider');
         throw error;
     }
 }
 
 /**
- * Met à jour un fournisseur d'authentification existant
- * @param {string} providerId - ID du fournisseur
- * @param {Object} providerData - Données à mettre à jour
- * @returns {Promise<Object>} - Le fournisseur mis à jour
+ * Updates an existing authentication provider
+ * @param {string} providerId - Provider ID
+ * @param {Object} providerData - Data to update
+ * @returns {Promise<Object>} - The updated provider
  */
 export async function updateProvider(providerId, providerData) {
     try {
         const options = createJsonRequestOptions('PUT', providerData);
         const result = await apiRequest(`${API_ENDPOINTS.PROVIDERS}/${providerId}`, options);
 
-        // Recharger la liste pour mettre à jour l'UI
+        // Reload the list to update the UI
         await loadProviders();
         return result;
     } catch (error) {
-        handleError(error, 'Impossible de mettre à jour le fournisseur d\'authentification');
+        handleError(error, 'Unable to update authentication provider');
         throw error;
     }
 }
 
 /**
- * Supprime un fournisseur d'authentification
- * @param {string} providerId - ID du fournisseur à supprimer
+ * Deletes an authentication provider
+ * @param {string} providerId - ID of provider to delete
  * @returns {Promise<void>}
  */
 export async function deleteProvider(providerId) {
     try {
-        await apiRequest(`${API_ENDPOINTS.PROVIDERS}/${providerId}`, { method: 'DELETE' });
+        const options = { method: 'DELETE' };
+        await apiRequest(`${API_ENDPOINTS.PROVIDERS}/${providerId}`, options);
 
-        // Recharger la liste pour refléter la suppression
+        // Reload the list to update the UI
         await loadProviders();
     } catch (error) {
-        handleError(error, 'Impossible de supprimer le fournisseur d\'authentification');
+        handleError(error, 'Unable to delete authentication provider');
         throw error;
     }
 }
 
 /**
- * Détermine si le champ tenant_id doit être affiché pour un type de fournisseur
- * @param {string} providerType - Type de fournisseur (google, microsoft, github)
- * @returns {boolean} - true si tenant_id doit être affiché
+ * Determines if the tenant_id field should be displayed for a provider type
+ * @param {string} providerType - Provider type (google, microsoft, github)
+ * @returns {boolean} - true if tenant_id should be displayed
  */
 export function isTenantIdRequired(providerType) {
     return providerType === 'microsoft';
